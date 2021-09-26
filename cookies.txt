@@ -1,0 +1,21 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+
+#HttpOnly_.youtube.com	TRUE	/	TRUE	0	GPS	1
+#HttpOnly_.youtube.com	TRUE	/	TRUE	0	YSC	42GDur63jOQ
+#HttpOnly_.youtube.com	TRUE	/	TRUE	0	VISITOR_INFO1_LIVE	_mBGZz7JTik
+.youtube.com	TRUE	/	FALSE	1947979628	SID	CAjPRdcxEcaqAf7TOA7UaZC8EinlOofBCrs7cl259CqCrcWptYAF4kOrhvo8tTpl0Fdb4w.
+#HttpOnly_.youtube.com	TRUE	/	TRUE	0	__Secure-1PSID	CAjPRdcxEcaqAf7TOA7UaZC8EinlOofBCrs7cl259CqCrcWpV2Mhi0pXxjQvy_E5UWmSKw.
+#HttpOnly_.youtube.com	TRUE	/	TRUE	0	__Secure-3PSID	CAjPRdcxEcaqAf7TOA7UaZC8EinlOofBCrs7cl259CqCrcWplK43P4yTS7vMWiGI1OaGeQ.
+#HttpOnly_.youtube.com	TRUE	/	FALSE	0	HSID	AP4Y2t6V5q1qL7GmA
+#HttpOnly_.youtube.com	TRUE	/	TRUE	0	SSID	AI6znTmRBSAk92Ot4
+.youtube.com	TRUE	/	FALSE	1947979628	APISID	6yRLImDro7L5Of8s/AuFDh6GupDAugjV91
+.youtube.com	TRUE	/	TRUE	1947979628	SAPISID	fQ_QBjdTmDSrCG1D/AX_G7O-WZ3NCOV1ri
+.youtube.com	TRUE	/	TRUE	1947979628	__Secure-1PAPISID	fQ_QBjdTmDSrCG1D/AX_G7O-WZ3NCOV1ri
+.youtube.com	TRUE	/	TRUE	1947979628	__Secure-3PAPISID	fQ_QBjdTmDSrCG1D/AX_G7O-WZ3NCOV1ri
+#HttpOnly_.youtube.com	TRUE	/	TRUE	0	LOGIN_INFO	AFmmF2swRgIhAMlVFchSJ99tvj2Rj5eKlmsk_QdV-l3Ki_lQarIzAUW7AiEApzeebAeRg5CYh-i82wLDO1MlMateA7FgMuniiy-nILU:QUQ3MjNmeE41U3VJWFJjQ1ZCVlJxWnRnMHhyVXVOeUJJMVVUOTBnbGVBR3VsMy1aQ0hsdGlJWDUxNDBVaEhBUlpLLWVNMHQwYlN5VVJqbXdyYzNFNU9pTDBubUotemIwcVpUYUVrb2xTRTFNYVhhQXB1cjJTUFBLSjNCeHR6WGdxUkRWYThyZUxzeFhOU2g4bzBDS0hUSW5mWXg2WlBPemNR
+.youtube.com	TRUE	/	TRUE	1947979628	PREF	tz=America.Recife
+.youtube.com	TRUE	/	TRUE	1947979628	CONSISTENCY	AGDxDeNuBIAM19wFg2bwUwcDi1ah2k3dOBnEWwE8FunHMEFqg8emxaHpupoC9d3xg22mNvTq2hirihLO8jwUlOzLQsMC7YFvnp7IXA5qKeVYI8uQCeBGT9nxXo5R90aZmByy1hdZIFIovntTTCx3ycye
+.youtube.com	TRUE	/	FALSE	1947979628	SIDCC	AJi4QfFP7484SLZn79KJhjTPUXGR8So8DogFY6PzBMm6oZPAbrMw2aXBFVhSqEsQeuOrKPUVAg
+#HttpOnly_.youtube.com	TRUE	/	TRUE	0	__Secure-3PSIDCC	AJi4QfG1sSAYyuq86vBGZxwGD-bsOloJ-malYlbZNMY0olj_oKoXjxiKvG8ShoQdXz9COowscw
