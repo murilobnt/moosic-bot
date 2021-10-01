@@ -94,11 +94,19 @@ class MusicPlayer(commands.Cog):
             await self.enqueue_song(queue, info, author_mention)
 
     async def connect_and_play(self, ctx, queue):
+        overwrites = {
+            ctx.guild.me: discord.PermissionOverwrite(connect=True)
+        }
+        channel_overwrites = ctx.author.voice.channel.overwrites_for(ctx.guild.me)
+        if not channel_overwrites.connect or not channel_overwrites.speak:
+            self.ensure_queue_deleted(ctx.guild.id)
+            raise MoosicError("Não tenho permissão para me conectar ou para falar no canal")
         try:
             queue['connection'] = await ctx.author.voice.channel.connect()
             await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
             await self.play_songs(ctx.guild.id)
         except (asyncio.TimeoutError, discord.ClientException) as e:
+            self.ensure_queue_deleted(ctx.guild.id)
             raise MoosicError("Há um problema de conexão com canal. Tchau tchau")
 
     def cancel_halt_task(self, queue):
