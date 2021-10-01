@@ -9,6 +9,8 @@ from src.cogs.music_player import MusicPlayer
 intents = discord.Intents.default()
 intents.members = True
 
+# Pretty cool, huh?
+
 pretty = PrettyHelp(index_title="Categoria", ending_note="Digite {help.clean_prefix}{help.invoked_with} comando para mais informações sobre o comando.\nAlternativamente, {help.clean_prefix}{help.invoked_with} categoria para mais informações sobre uma categoria.")
 
 bot = commands.Bot(command_prefix='moo ', help_command=pretty, intents=intents)
