@@ -46,7 +46,7 @@ class MusicPlayer(commands.Cog):
             raise MoosicError("Não há conexão com o bot")
 
     def verify_info_fields(self, info):
-        if not info.get('title') or not info.get('url') or not info.get('duration'):
+        if not info.get('title') or not info.get('url'):
             raise MoosicError("Houve um erro com o download de um item")
 
     async def play_song_index(self, ctx, queue, song_index):
@@ -115,6 +115,10 @@ class MusicPlayer(commands.Cog):
                 queue['alone_task'].cancel()
 
             queue['alone_task'] = None
+
+    @commands.command(aliases=[''], pass_context=True)
+    async def test(self, ctx, *, url : str):
+        await ctx.send(f"Moo! Você disse {url}")
 
     @commands.command(aliases=['p', 't', 'tocar'], pass_context=True)
     async def play(self, ctx, *, url : str):
