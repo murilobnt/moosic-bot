@@ -6,8 +6,6 @@ from pretty_help import PrettyHelp
 from src.utils.moosic_error import MoosicError
 from src.cogs.music_player import MusicPlayer
 
-from src.utils.moosic_bot import MoosicBot
-
 intents = discord.Intents.default()
 intents.members = True
 
@@ -15,7 +13,7 @@ intents.members = True
 
 pretty = PrettyHelp(index_title="Categoria", ending_note="Digite {help.clean_prefix}{help.invoked_with} comando para mais informações sobre o comando.\nAlternativamente, {help.clean_prefix}{help.invoked_with} categoria para mais informações sobre uma categoria.")
 
-bot = MoosicBot(command_prefix='moo ', help_command=pretty, intents=intents)
+bot = commands.Bot(command_prefix='moo ', help_command=pretty, intents=intents)
 
 @bot.event
 async def on_ready():
