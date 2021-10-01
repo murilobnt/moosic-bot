@@ -94,13 +94,6 @@ class MusicPlayer(commands.Cog):
             await self.enqueue_song(queue, info, author_mention)
 
     async def connect_and_play(self, ctx, queue):
-        overwrites = {
-            ctx.guild.me: discord.PermissionOverwrite(connect=True)
-        }
-        channel_overwrites = ctx.author.voice.channel.overwrites_for(ctx.guild.me)
-        if not channel_overwrites.connect or not channel_overwrites.speak:
-            self.ensure_queue_deleted(ctx.guild.id)
-            raise MoosicError("Não tenho permissão para me conectar ou para falar no canal")
         try:
             queue['connection'] = await ctx.author.voice.channel.connect()
             await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
@@ -127,6 +120,11 @@ class MusicPlayer(commands.Cog):
     async def play(self, ctx, *, url : str):
         """Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz"""
         self.verify_user_voice(ctx)
+
+        channel_permissions = ctx.author.voice.channel.permissions_for(ctx.guild.me)
+        if not channel_permissions.connect or not channel_permissions.speak:
+            raise MoosicError("Não tenho permissão para me conectar ou para falar no canal")
+
         queue = self.servers_queues.get(ctx.guild.id)
         created_queue = False
 
@@ -134,8 +132,7 @@ class MusicPlayer(commands.Cog):
             connection = queue['connection']
             connection.stop()
             await connection.disconnect()
-            self.servers_queues.pop(ctx.guild.id)
-            queue = None
+            self.ensure_queue_deleted(ctx.guild.id)
 
         if not queue:
             created_queue = True
