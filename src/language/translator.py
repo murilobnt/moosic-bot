@@ -9,12 +9,12 @@ class SupportedLanguages(Enum):
     ES    = 3
 
 def int_to_sl(sl_id):
-    lang = SupportedLanguages.PT_BR
-    if sl_id == 2:
-        lang = SupportedLanguages.US_EN
+    if sl_id == 1:
+        return SupportedLanguages.PT_BR
+    elif sl_id == 2:
+        return SupportedLanguages.US_EN
     elif sl_id == 3:
-        lang = SupportedLanguages.ES
-    return lang
+        return SupportedLanguages.ES
 
 def sl_to_int(sl):
     if sl == SupportedLanguages.PT_BR:
@@ -24,30 +24,6 @@ def sl_to_int(sl):
     if sl == SupportedLanguages.ES:
         return 3
     
-async def get_language(guild_id, servers_settings):
-    if servers_settings.get(guild_id) and servers_settings[guild_id].get('language'):
-        return servers_settings[guild_id]['language']
-
-    if not servers_settings.get(guild_id):
-        servers_settings[guild_id] = {}
-
-    settings = servers_settings[guild_id]
-        
-    conn = await connect_db()
-    language = await conn.fetchval("SELECT language FROM guild_settings INNER JOIN guilds ON guild_did = guilds.id WHERE guilds.guild_id = $1", guild_id)
-
-    if not language:
-        await conn.close()
-        lang = SupportedLanguages.PT_BR
-        settings['language'] = lang
-        return lang
-
-    lang = int_to_sl(language)
-
-    await conn.close()
-    settings['language'] = lang
-    return lang
-
 def _s(string_id, language : SupportedLanguages):
     if language == SupportedLanguages.PT_BR:
         return data['pt_br'][string_id] if data.get('pt_br') and data['pt_br'].get(string_id) else "Erro de tradução. Contate o dev pls :c"
@@ -62,5 +38,8 @@ class Translator:
     def __init__(self, servers_settings):
         self.servers_settings = servers_settings
 
-    async def translate(self, string_id, guild_id):
-        return _s(string_id, await get_language(guild_id, self.servers_settings))
+    def translate(self, string_id, guild_id):
+        lang = SupportedLanguages.PT_BR
+        if self.servers_settings.get(guild_id) and self.servers_settings[guild_id].get('language'):
+            lang = self.servers_settings[guild_id]['language']
+        return _s(string_id, lang)

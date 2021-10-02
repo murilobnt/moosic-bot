@@ -50,6 +50,8 @@ class ServerSettings(commands.Cog):
         conn = await connect_db()
         fetch = await conn.fetch("SELECT language, guild_id FROM guild_settings INNER JOIN guilds ON guild_did = guilds.id")
         for language, guild_id in fetch:
+            if not self.servers_settings.get(guild_id):
+                self.servers_settings[guild_id] = {}
             lang = int_to_sl(language)
             self.servers_settings[guild_id]['language'] = lang
         await conn.close()
