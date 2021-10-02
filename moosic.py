@@ -6,13 +6,15 @@ from pretty_help import PrettyHelp
 from src.utils.moosic_error import MoosicError
 from src.cogs.music_player import MusicPlayer
 from src.cogs.server_settings import ServerSettings
+from src.utils.moosic_paginator import MoosicHelp
 
 intents = discord.Intents.default()
 intents.members = True
 
 # Pretty cool, huh?
 
-pretty = PrettyHelp(index_title="Categoria", ending_note="Digite {help.clean_prefix}{help.invoked_with} comando para mais informações sobre o comando.\nAlternativamente, {help.clean_prefix}{help.invoked_with} categoria para mais informações sobre uma categoria.")
+servers_settings={}
+pretty = MoosicHelp(servers_settings, index_title="Categoria", ending_note="Digite {help.clean_prefix}{help.invoked_with} comando para mais informações sobre o comando.\nAlternativamente, {help.clean_prefix}{help.invoked_with} categoria para mais informações sobre uma categoria.")
 
 bot = commands.Bot(command_prefix='moo ', help_command=pretty, intents=intents)
 
@@ -28,8 +30,6 @@ async def on_command_error(ctx, error):
     if isinstance(error, MoosicError):
         await ctx.send(error)
     raise error
-
-servers_settings={}
 
 bot.add_cog(MusicPlayer(bot, servers_settings))
 bot.add_cog(ServerSettings(bot, servers_settings))

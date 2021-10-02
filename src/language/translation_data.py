@@ -53,7 +53,18 @@ Whoops! Houve um erro de download para {title}. Ele será pulado :)
         "play_np" : "Tocando agora",
         "inactive_notice" : "Por estar inativo, vou sair da call. Tchau tchau!",
         "alone_notice" : "Estou a sós na call por um tempo. Saindo!",
-        "q_next" : "Próxima música"
+        "q_next" : "Próxima música",
+
+        "dc_desc" : "Desconecta o bot da chamada e encerra tudo",
+        "loop_desc" : "Altera o modo de loop do bot",
+        "np_desc" : "Disponibiliza informações da música que está tocando",
+        "pause_desc" : "Pausa a música que está tocando",
+        "play_desc" : "Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz",
+        "queue_desc" : "Mostra informações da lista de músicas",
+        "remove_desc" : "Remove alguma música da fila",
+        "resume_desc" : "Resume a música que estava tocando",
+        "seek_desc" : "Vai para um determinado tempo da música",
+        "skip_desc" : "Pula um determinado número de músicas na fila"
     },
     'us_en': {
         "er_con" : "You need to be connected to a voice channel",
@@ -107,7 +118,19 @@ Whoops! There was an download error for {title}. It will be skipped :)
         "play_np" : "Now playing",
         "inactive_notice" : "For I'm inactive, I'm leaving the vc. Bye bye!",
         "alone_notice" : "I'm alone in the vc for a while. Leaving!",
-        "q_next" : "Next song"
+        "q_next" : "Next song",
+
+
+        "dc_desc" : "Disconnects bot from a voice channel and closes everything",
+        "loop_desc" : "Alters bot's loop mode",
+        "np_desc" : "Shows informations about the song that is playing",
+        "pause_desc" : "Pauses the song that is playing",
+        "play_desc" : "Plays a song, or a song index of the queue, and connects the bot to a voice channel",
+        "queue_desc" : "Shows informations about the song queue",
+        "remove_desc" : "Removes a song from the queue",
+        "resume_desc" : "Resumes the song that was playing",
+        "seek_desc" : "Seeks a timestamp of the song",
+        "skip_desc" : "Skips a number of songs of the queue"
     },
     'es': {
         "er_con" : "Debe estar conectado a un canal de voz",
@@ -161,6 +184,18 @@ Whoops! Hubo un error de download para {title}. Será saltado :)
         "play_np" : "Tocando ahora",
         "inactive_notice" : "Porque estoy inactivo, me voy a salir del voice. ¡Adioooos!",
         "alone_notice" : "Estoy solo en el voice por un tiempo. ¡Dejando!",
-        "q_next" : "Siguiente música"
+        "q_next" : "Siguiente música",
+
+
+        "dc_desc" : "Desconecta el bot del voice y cierra tudo",
+        "loop_desc" : "Cambia el modo de repetición del bot ",
+        "np_desc" : "Proporciona información sobre la música que se está reproduciendo actualmente",
+        "pause_desc" : "Pausa la música que está tocando",
+        "play_desc" : "Reproduce una música, o un índice de música en la cola, y conecta el bot a un canal de voz",
+        "queue_desc" : "Muestra información de la lista de música",
+        "remove_desc" : "Quita una música de la cola",
+        "resume_desc" : "Resume la música que estaba tocando",
+        "seek_desc" : "Va a un momento determinado de la música",
+        "skip_desc" : "Se salta una cierta cantidad de músicas en la cola"
     }
 }
