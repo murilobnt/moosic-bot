@@ -5,6 +5,7 @@ import os
 from pretty_help import PrettyHelp
 from src.utils.moosic_error import MoosicError
 from src.cogs.music_player import MusicPlayer
+from src.cogs.server_settings import ServerSettings
 
 intents = discord.Intents.default()
 intents.members = True
@@ -28,5 +29,8 @@ async def on_command_error(ctx, error):
         await ctx.send(error)
     raise error
 
-bot.add_cog(MusicPlayer(bot))
+servers_settings={}
+
+bot.add_cog(MusicPlayer(bot, servers_settings))
+bot.add_cog(ServerSettings(bot, servers_settings))
 bot.run(os.environ['MOO_BOT_KEY'])
