@@ -265,28 +265,29 @@ Whoops! Hubo un error de download para {title}. Será saltado :)
 
         "language" : "Define el idioma del bot para el servidor",
 
-        "ldesc_disconnect" : """Este comando, como o nome sugere, desconecta o bot de algum canal de voz.
-Todo registro de músicas do servidor (a fila de reprodução) é excluído na chamada deste comando.""",
-        "ldesc_loop" : """Este comando altera o modo de loop do bot. Por padrão, o bot começa no modo sem repetição.
-Utilize este comando uma vez para colocá-lo no modo de repetição da fila, mais outra para colocá-lo no modo de repetição do item, e uma última para voltar ao modo sem repetição.""",
-        "ldesc_np" : """Este comando mostra informações da música que está tocando. Essas informações são o nome, o tempo atual e a duração da música, e o usuário que a colocou na fila.""",
-        "ldesc_pause" : """Este comando pausa a música que está tocando. Para retomar a música, utilize o comando resume""",
-        "ldesc_play" : """Este comando é responsável por conectar o bot a um canal de voz (caso ele não esteja) e por colocar algum item na fila.
-Como argumento deste comando, você deve infomar:
-A url de um vídeo, playlist ou live, do YouTube; 
-Um texto de busca que vai adicionar o primeiro vídeo que encontrar com a busca, no YouTube;
-Ou o índice de uma música na fila, para tocar imediatamente.""",
+        "ldesc_disconnect" : """Este comando, como su nombre indica, desconecta al bot de algún canal de voz.
+Todos los registros de música del servidor (la cola de reproducción) se eliminan al llamar a este comando.""",
+        "ldesc_loop" : """Este comando cambia el modo de bucle del bot. De forma predeterminada, el bot se inicia en modo de no repetición.
+Utilice este comando una vez para ponerlo en modo de repetición en cola, una vez más para ponerlo en modo de repetición de elementos y un último par para volver al modo sin repetición.""",
+        "ldesc_np" : """Este comando muestra información de la canción que se está reproduciendo actualmente. Esta información es el nombre, el tempo actual y la duración de la canción, y el usuario que la puso en cola. """,
+        "ldesc_pause" : """Este comando detiene la canción que se está reproduciendo actualmente. Para reanudar la música, use el comando resume""",
+        "ldesc_play" : """Este comando se encarga de conectar el bot a un canal de voz (si no está conectado) y de poner algún elemento en la cola.
+Como argumento de este comando, debe ingresar:
+La URL de un video, lista de reproducción o en vivo de YouTube;
+Un texto de búsqueda que agregará el primer video que encuentre con la búsqueda, en YouTube;
+O el índice de una canción en la cola, para reproducir de inmediato.""",
         "ldesc_queue" : """Este comando mostra as informações da lista de músicas do servidor.
 As informações disponibilizadas são o índice da música na fila, o nome da música, a duração da música e um indicador de tocando agora para a música que está tocando.""",
-        "ldesc_remove" : """Este comando remove a música de um índice da fila, que precisa ser especificado. Não confundir com o comando skip, que pula a música atual mas não a remove da fila.""",
-        "ldesc_resume" : """Este comando retoma a música que estava tocando. Para ter sucesso, é preciso utilizar este comando depois do comando pause.""",
-        "ldesc_seek" : """Este comando vai a um determinado tempo da música que está tocando. 
-Por exemplo, se eu quiser ir para o tempo 3 minutos e 2 segundos da música que está tocando, posso utilizar moo seek 03:02, ou moo seek 3:2, ou moo seek 182. Ou seja, é possível passar um argumento como HH:MM:SS, MM:SS ou apenas segundos.""",
-        "ldesc_skip" : """Este comando pula um determinado número de músicas na fila. Ele recebe um argumento opcional do número de músicas a serem puladas, mas caso ele não esteja presente, ele pula apenas a música atual.""",
+        "ldesc_remove" : """Este comando muestra la información de la lista de reproducción del servidor.
+La información proporcionada es el índice de la canción en la cola, el nombre de la canción, la duración de la canción y un indicador de reproducción actual para la canción que se está reproduciendo actualmente. """,
+        "ldesc_resume" : """Este comando reanuda la canción que se estaba reproduciendo. Para tener éxito, debe utilizar este comando después del comando de pause.""",
+        "ldesc_seek" : """Este comando va a un cierto tempo de la canción que se está reproduciendo actualmente.
+Por ejemplo, si quiero ir al tiempo de 3 minutos y 2 segundos de la canción que se está reproduciendo actualmente, puedo usar moo seek 3:02, moo seek 3:2, o moo seek 182. Es decir, es posible pasar un argumento como HH:MM:SS, MM:SS, o solo segundos.""",
+        "ldesc_skip" : """Este comando salta una cierta cantidad de canciones en la cola. Se necesita un argumento opcional del número de canciones que se van a saltar, pero si no está presente, simplemente se salta la canción actual.""",
 
-        "ldesc_language" : """Este comando define a linguagem para o servidor. 
-Ele não recebe argumento algum, mas uma resposta é obtida pelo bot logo após a utilização, mostrando possíveis respostas.
-Como resposta, você deve especificar o índice da linguagem do bot para o servidor. Por padrão, a linguagem do bot é português."""
+        "ldesc_language" : """Este comando establece el idioma del servidor.
+No requiere ningún argumento, pero el bot envía una respuesta inmediatamente después de su uso, mostrando posibles opciones de idioma.
+En respuesta, debe especificar el índice de idioma del bot para el servidor. De forma predeterminada, el idioma del bot es el portugués."""
 
     }
 }
