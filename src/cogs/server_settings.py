@@ -4,6 +4,7 @@ from discord.ext import commands
 from src.database.async_database import connect_db
 from src.database.async_database import create_get_guild_record
 from src.language.translator import int_to_sl
+from src.utils.moosic_help import MoosicHelp
 
 def is_int(what):
     try:
@@ -13,15 +14,19 @@ def is_int(what):
         return False
 
 class ServerSettings(commands.Cog):
-    """Definições de configuração para o servidor"""
+    """desc_ss"""
     def __init__(self, bot, servers_settings):
         self.servers_settings = servers_settings
         self.bot = bot
 
     @commands.has_permissions(administrator=True)
-    @commands.command(aliases=['língua', 'idioma'], pass_context=True)
+    @commands.command(aliases=['língua', 'lingua', 'idioma'],
+                      short_doc="Stoopid",
+                      description="ldesc_language",
+                      pass_context=True)
+
+        
     async def language(self, ctx):
-        """Define a linguagem do bot para o servidor"""
         await ctx.send("1. Português\n2. English\n3. Español")
         try:
             opt_msg = await self.bot.wait_for('message', timeout=30, check=lambda message: message.author == ctx.author and is_int(message.content))
@@ -42,6 +47,7 @@ class ServerSettings(commands.Cog):
             self.servers_settings[ctx.guild.id] = {}
 
         self.servers_settings[ctx.guild.id]['language'] = int_to_sl(opt)
+        self.bot.help_command = MoosicHelp(self.servers_settings)
         await conn.close()
         await opt_msg.add_reaction("\U00002705")
 
@@ -54,4 +60,6 @@ class ServerSettings(commands.Cog):
                 self.servers_settings[guild_id] = {}
             lang = int_to_sl(language)
             self.servers_settings[guild_id]['language'] = lang
+
+        self.bot.help_command = MoosicHelp(self.servers_settings)
         await conn.close()

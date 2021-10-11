@@ -25,7 +25,7 @@ class LoopState(Enum):
     LOOP_TRACK = 3
 
 class MusicPlayer(commands.Cog):
-    """Tocador de áudio de vídeos do YouTube"""
+    """desc_mp"""
     def __init__(self, bot, servers_settings):
         self.bot = bot
         self.servers_queues = {}
@@ -121,7 +121,7 @@ class MusicPlayer(commands.Cog):
 
             queue['alone_task'] = None
 
-    @commands.command(aliases=['p', 't', 'tocar'], pass_context=True)
+    @commands.command(aliases=['p', 't', 'tocar'], description="ldesc_play", pass_context=True)
     async def play(self, ctx, *, url : str):
         """Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz"""
         self.verify_user_voice(ctx)
@@ -227,7 +227,7 @@ class MusicPlayer(commands.Cog):
         if queue['song_index'] >= len(queue['meta_list']):
             raise MoosicError(self.translator.translate("er_nosong", ctx.guild.id))
 
-    @commands.command(aliases=['pular'], pass_context=True)
+    @commands.command(aliases=['pular'], description="ldesc_skip", pass_context=True) 
     async def skip(self, ctx, *, how_many : int = None):
         """Pula um determinado número de músicas na fila"""
         self.basic_verifications(ctx)
@@ -255,7 +255,7 @@ class MusicPlayer(commands.Cog):
 
         queue['connection'].stop()
 
-    @commands.command(aliases=['pausar'], pass_context=True)
+    @commands.command(aliases=['pausar'], description="ldesc_pause", pass_context=True)
     async def pause(self, ctx):
         """Pausa a música que está tocando"""
         self.basic_verifications(ctx)
@@ -269,7 +269,7 @@ class MusicPlayer(commands.Cog):
         queue['connection'].pause()
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['resumir'], pass_context=True)
+    @commands.command(aliases=['resumir'], description="ldesc_resume", pass_context=True)
     async def resume(self, ctx):
         """Resume a música que estava tocando"""
         self.basic_verifications(ctx)
@@ -285,7 +285,7 @@ class MusicPlayer(commands.Cog):
         queue['connection'].resume()
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['time', 'to', 'para', 'em', 'tempo'], pass_context=True)
+    @commands.command(aliases=['time', 'to', 'para', 'em', 'tempo'], description="ldesc_seek", pass_context=True)
     async def seek(self, ctx, timestamp : str):
         """Vai para um determinado tempo da música"""
         self.basic_verifications(ctx)
@@ -316,7 +316,7 @@ class MusicPlayer(commands.Cog):
         queue['connection'].stop()
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['now_playing', 'tocando_agora', 'ta'], pass_context=True)
+    @commands.command(aliases=['now_playing', 'tocando_agora', 'ta'], description="ldesc_np", pass_context=True)
     async def np(self, ctx):
         """Disponibiliza informações da música que está tocando"""
         self.basic_verifications(ctx)
@@ -366,7 +366,7 @@ class MusicPlayer(commands.Cog):
                     color=0xedd400)
             await ctx.send(embed=embed)
 
-    @commands.command(aliases=['q', 'fila'], pass_context=True)
+    @commands.command(aliases=['q', 'fila'], description="ldesc_queue", pass_context=True)
     async def queue(self, ctx):
         """Mostra informações da lista de músicas"""
         self.basic_verifications(ctx)
@@ -470,7 +470,7 @@ class MusicPlayer(commands.Cog):
     def build_page(self, guild_id, songs, in_loop, page, last_page):
         return self.translator.translate("q_page", guild_id).format(page_plus=page + 1, last_page_plus = last_page + 1, songs=songs, in_loop = in_loop)
 
-    @commands.command(aliases=['dc', 'quit'], pass_context=True)
+    @commands.command(aliases=['dc', 'quit'], description="ldesc_disconnect", pass_context=True)
     async def disconnect(self, ctx):
         """Desconecta o bot da chamada e encerra tudo"""
         self.verify_same_voice(ctx)
@@ -511,7 +511,7 @@ class MusicPlayer(commands.Cog):
         if not queue.get('meta_list'):
             raise MoosicError(self.translator.translate("er_vns", ctx.guild.id))
 
-    @commands.command(aliases=['remover', 'rm'], pass_context=True)
+    @commands.command(aliases=['remover', 'rm'], description="ldesc_remove", pass_context=True)
     async def remove(self, ctx, index : int):
         """Remove alguma música da fila"""
         self.basic_verifications(ctx)
@@ -535,7 +535,7 @@ class MusicPlayer(commands.Cog):
         songs_list.pop(m_index)
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['repetir'], pass_context=True)
+    @commands.command(aliases=['repetir'], description="ldesc_loop", pass_context=True)
     async def loop(self, ctx):
         """Altera o modo de loop do bot"""
         self.basic_verifications_without_songs(ctx)

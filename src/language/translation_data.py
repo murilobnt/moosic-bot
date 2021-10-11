@@ -1,7 +1,8 @@
-import json
-
 data = {
     'pt_br': {
+        "desc_mp" : "Tocador de áudio de vídeos do YouTube",
+        "desc_ss" : "Configurações para o servidor",
+
         "er_con" : "Você precisa estar conectado a um canal de voz",
         "er_conb" : "Não há conexão com o bot",
         "er_down" : "Houve um erro com o download de um item",
@@ -55,18 +56,49 @@ Whoops! Houve um erro de download para {title}. Ele será pulado :)
         "alone_notice" : "Estou a sós na call por um tempo. Saindo!",
         "q_next" : "Próxima música",
 
-        "dc_desc" : "Desconecta o bot da chamada e encerra tudo",
-        "loop_desc" : "Altera o modo de loop do bot",
-        "np_desc" : "Disponibiliza informações da música que está tocando",
-        "pause_desc" : "Pausa a música que está tocando",
-        "play_desc" : "Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz",
-        "queue_desc" : "Mostra informações da lista de músicas",
-        "remove_desc" : "Remove alguma música da fila",
-        "resume_desc" : "Resume a música que estava tocando",
-        "seek_desc" : "Vai para um determinado tempo da música",
-        "skip_desc" : "Pula um determinado número de músicas na fila"
+        "help_it" : "Categorias",
+        "help_en" : "Digite {help.clean_prefix}{help.invoked_with} <comando> para mais informações sobre algum comando.\nAlternativamente, {help.clean_prefix}{help.invoked_with} categoria para mais informações sobre uma categoria.",
+
+        "disconnect" : "Desconecta o bot da chamada e encerra tudo",
+        "loop" : "Altera o modo de loop do bot",
+        "np" : "Disponibiliza informações da música que está tocando",
+        "pause" : "Pausa a música que está tocando",
+        "play" : "Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz",
+        "queue" : "Mostra informações da lista de músicas",
+        "remove" : "Remove alguma música da fila",
+        "resume" : "Resume a música que estava tocando",
+        "seek" : "Vai para um determinado tempo da música",
+        "skip" : "Pula um determinado número de músicas na fila",
+
+        "language" : "Define a linguagem do bot para o servidor",
+
+        "ldesc_disconnect" : """Este comando, como o nome sugere, desconecta o bot de algum canal de voz.
+Todo registro de músicas do servidor (a fila de reprodução) é excluído na chamada deste comando.""",
+        "ldesc_loop" : """Este comando altera o modo de loop do bot. Por padrão, o bot começa no modo sem repetição.
+Utilize este comando uma vez para colocá-lo no modo de repetição da fila, mais outra para colocá-lo no modo de repetição do item, e uma última para voltar ao modo sem repetição.""",
+        "ldesc_np" : """Este comando mostra informações da música que está tocando. Essas informações são o nome, o tempo atual e a duração da música, e o usuário que a colocou na fila.""",
+        "ldesc_pause" : """Este comando pausa a música que está tocando. Para retomar a música, utilize o comando resume""",
+        "ldesc_play" : """Este comando é responsável por conectar o bot a um canal de voz (caso ele não esteja) e por colocar algum item na fila.
+Como argumento deste comando, você deve infomar:
+A url de um vídeo, playlist ou live, do YouTube; 
+Um texto de busca que vai adicionar o primeiro vídeo que encontrar com a busca, no YouTube;
+Ou o índice de uma música na fila, para tocar imediatamente.""",
+        "ldesc_queue" : """Este comando mostra as informações da lista de músicas do servidor.
+As informações disponibilizadas são o índice da música na fila, o nome da música, a duração da música e um indicador de tocando agora para a música que está tocando.""",
+        "ldesc_remove" : """Este comando remove a música de um índice da fila, que precisa ser especificado. Não confundir com o comando skip, que pula a música atual mas não a remove da fila.""",
+        "ldesc_resume" : """Este comando retoma a música que estava tocando. Para ter sucesso, é preciso utilizar este comando depois do comando pause.""",
+        "ldesc_seek" : """Este comando vai a um determinado tempo da música que está tocando. 
+Por exemplo, se eu quiser ir para o tempo 3 minutos e 2 segundos da música que está tocando, posso utilizar moo seek 03:02, ou moo seek 3:2, ou moo seek 182. Ou seja, é possível passar um argumento como HH:MM:SS, MM:SS ou apenas segundos.""",
+        "ldesc_skip" : """Este comando pula um determinado número de músicas na fila. Ele recebe um argumento opcional do número de músicas a serem puladas, mas caso ele não esteja presente, ele pula apenas a música atual.""",
+
+        "ldesc_language" : """Este comando define a linguagem para o servidor. 
+Ele não recebe argumento algum, mas uma resposta é enviada pelo bot logo após a utilização, mostrando possíveis opções de linguagens.
+Como resposta, você deve especificar o índice da linguagem do bot para o servidor. Por padrão, a linguagem do bot é português."""
     },
     'us_en': {
+        "desc_mp" : "Audio player of YouTube videos",
+        "desc_ss" : "Settings for the server",
+
         "er_con" : "You need to be connected to a voice channel",
         "er_conb" : "There is no connection with the bot",
         "er_down" : "There was an error with the download of the item",
@@ -120,19 +152,50 @@ Whoops! There was an download error for {title}. It will be skipped :)
         "alone_notice" : "I'm alone in the vc for a while. Leaving!",
         "q_next" : "Next song",
 
+        "help_it" : "Categories",
+        "help_en" : "Type {help.clean_prefix}{help.invoked_with} <command> for more information about a command.\nAlternatively, {help.clean_prefix}{help.invoked_with} <category> for more information about a category.",
 
-        "dc_desc" : "Disconnects bot from a voice channel and closes everything",
-        "loop_desc" : "Alters bot's loop mode",
-        "np_desc" : "Shows informations about the song that is playing",
-        "pause_desc" : "Pauses the song that is playing",
-        "play_desc" : "Plays a song, or a song index of the queue, and connects the bot to a voice channel",
-        "queue_desc" : "Shows informations about the song queue",
-        "remove_desc" : "Removes a song from the queue",
-        "resume_desc" : "Resumes the song that was playing",
-        "seek_desc" : "Seeks a timestamp of the song",
-        "skip_desc" : "Skips a number of songs of the queue"
+        "disconnect" : "Disconnects bot from a voice channel and closes everything",
+        "loop" : "Alters bot's loop mode",
+        "np" : "Shows information about the song that is playing",
+        "pause" : "Pauses the song that is playing",
+        "play" : "Plays a song, or a song index of the queue, and connects the bot to a voice channel",
+        "queue" : "Shows informations about the song queue",
+        "remove" : "Removes a song from the queue",
+        "resume" : "Resumes the song that was playing",
+        "seek" : "Seeks a timestamp of the song",
+        "skip" : "Skips a number of songs of the queue",
+
+        "language" : "Defines the language of the bot for the server",
+
+        "ldesc_disconnect" : """This command, as the name suggests, disconnects the bot from a voice channel.
+All record of songs in the server (the song queue) is removed on the calling of this command.""",
+        "ldesc_loop" : """This command alters the loop mode of the bot. By default, it starts in no loop mode.
+Use this command once to set the bot in loop queue mode, again for loop track mode, and a last time to go back to no loop mode.""",
+        "ldesc_np" : """This command displays information about the song that is playing. They are the name, the current time and the duration of the song, and the user who inserted it.""",
+        "ldesc_pause" : """This command pauses the song that is playing. To resume the song, use the resume command.""",
+        "ldesc_play" : """This command is responsible for connecting the bot to a voice channel (if it isn't connected) and for inserting an item to the queue.
+As argument of this command, you must provide:
+The url of a YouTube video, playlist or live;
+A YouTube search query that will insert the first video of the result.
+Or the index of a song in the queue, to play right now.""",
+        "ldesc_queue" : """This command displays information about the song queue of the server.
+That information is the song index in the queue, the name of the song, the duration of the song, and a now playing indicator for the song that is playing.""",
+        "ldesc_remove" : """This command removes the song of an index in the queue, that must be specified. Is not to be mistaken with the skip command, that skips the current song, but doesn't remove it from the queue.""",
+        "ldesc_resume" : """This command resumes the song that was playing. To be successful, this command needs to be used after the pause command.""",
+        "ldesc_seek" : """This command seeks a timestamp in the song that is playing.
+For example, if I'd like to go to 3 minutes and 2 seconds of the song that is playing, I can use moo seek 03:02, or moo seek 3:2, or moo seek 182. It is possible to provide an argument as HH:MM:SS, MM:SS or only seconds.""",
+        "ldesc_skip" : """This command skips a number of songs in the queue. It receives an optional argument of the number of songs to be skipped. If it is not specified, it will only skip the current song.""",
+
+        "ldesc_language" : """This command defines the language of the bot for the server. 
+It doesn't need any argument, but a response is given by the bot right after, showing possible language options.
+As reply, you must specify the index of the language of the bot for the server. By default, the bot's language is Brazillian Portuguese."""
+
     },
     'es': {
+        "desc_mp" : "Reproductor de audio de videos de YouTube",
+        "desc_ss" : "Configuración para el servidor",
+
         "er_con" : "Debe estar conectado a un canal de voz",
         "er_conb" : "No hay conexión con el bot",
         "er_down" : "Hubo un error al descargar un elemento",
@@ -186,16 +249,44 @@ Whoops! Hubo un error de download para {title}. Será saltado :)
         "alone_notice" : "Estoy solo en el voice por un tiempo. ¡Dejando!",
         "q_next" : "Siguiente música",
 
+        "help_it" : "Categorías",
+        "help_en" : "Escribe {help.clean_prefix}{help.invoked_with} <comando> para obtener más información sobre un comando.\nAlternativamente, {help.clean_prefix}{help.invoked_with} <categoría> para más información sobre una categoría.",
 
-        "dc_desc" : "Desconecta el bot del voice y cierra tudo",
-        "loop_desc" : "Cambia el modo de repetición del bot ",
-        "np_desc" : "Proporciona información sobre la música que se está reproduciendo actualmente",
-        "pause_desc" : "Pausa la música que está tocando",
-        "play_desc" : "Reproduce una música, o un índice de música en la cola, y conecta el bot a un canal de voz",
-        "queue_desc" : "Muestra información de la lista de música",
-        "remove_desc" : "Quita una música de la cola",
-        "resume_desc" : "Resume la música que estaba tocando",
-        "seek_desc" : "Va a un momento determinado de la música",
-        "skip_desc" : "Se salta una cierta cantidad de músicas en la cola"
+        "disconnect" : "Desconecta el bot del voice y cierra tudo",
+        "loop" : "Cambia el modo de repetición del bot ",
+        "np" : "Proporciona información sobre la música que se está reproduciendo actualmente",
+        "pause" : "Pausa la música que está tocando",
+        "play" : "Reproduce una música, o un índice de música en la cola, y conecta el bot a un canal de voz",
+        "queue" : "Muestra información de la lista de música",
+        "remove" : "Quita una música de la cola",
+        "resume" : "Resume la música que estaba tocando",
+        "seek" : "Va a un momento determinado de la música",
+        "skip" : "Se salta una cierta cantidad de músicas en la cola",
+
+        "language" : "Define el idioma del bot para el servidor",
+
+        "ldesc_disconnect" : """Este comando, como o nome sugere, desconecta o bot de algum canal de voz.
+Todo registro de músicas do servidor (a fila de reprodução) é excluído na chamada deste comando.""",
+        "ldesc_loop" : """Este comando altera o modo de loop do bot. Por padrão, o bot começa no modo sem repetição.
+Utilize este comando uma vez para colocá-lo no modo de repetição da fila, mais outra para colocá-lo no modo de repetição do item, e uma última para voltar ao modo sem repetição.""",
+        "ldesc_np" : """Este comando mostra informações da música que está tocando. Essas informações são o nome, o tempo atual e a duração da música, e o usuário que a colocou na fila.""",
+        "ldesc_pause" : """Este comando pausa a música que está tocando. Para retomar a música, utilize o comando resume""",
+        "ldesc_play" : """Este comando é responsável por conectar o bot a um canal de voz (caso ele não esteja) e por colocar algum item na fila.
+Como argumento deste comando, você deve infomar:
+A url de um vídeo, playlist ou live, do YouTube; 
+Um texto de busca que vai adicionar o primeiro vídeo que encontrar com a busca, no YouTube;
+Ou o índice de uma música na fila, para tocar imediatamente.""",
+        "ldesc_queue" : """Este comando mostra as informações da lista de músicas do servidor.
+As informações disponibilizadas são o índice da música na fila, o nome da música, a duração da música e um indicador de tocando agora para a música que está tocando.""",
+        "ldesc_remove" : """Este comando remove a música de um índice da fila, que precisa ser especificado. Não confundir com o comando skip, que pula a música atual mas não a remove da fila.""",
+        "ldesc_resume" : """Este comando retoma a música que estava tocando. Para ter sucesso, é preciso utilizar este comando depois do comando pause.""",
+        "ldesc_seek" : """Este comando vai a um determinado tempo da música que está tocando. 
+Por exemplo, se eu quiser ir para o tempo 3 minutos e 2 segundos da música que está tocando, posso utilizar moo seek 03:02, ou moo seek 3:2, ou moo seek 182. Ou seja, é possível passar um argumento como HH:MM:SS, MM:SS ou apenas segundos.""",
+        "ldesc_skip" : """Este comando pula um determinado número de músicas na fila. Ele recebe um argumento opcional do número de músicas a serem puladas, mas caso ele não esteja presente, ele pula apenas a música atual.""",
+
+        "ldesc_language" : """Este comando define a linguagem para o servidor. 
+Ele não recebe argumento algum, mas uma resposta é obtida pelo bot logo após a utilização, mostrando possíveis respostas.
+Como resposta, você deve especificar o índice da linguagem do bot para o servidor. Por padrão, a linguagem do bot é português."""
+
     }
 }
