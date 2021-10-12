@@ -647,7 +647,7 @@ class MusicPlayer(commands.Cog):
         self.cancel_alone_task(queue)
 
     async def alone(self, guild_id, queue):
-        await self.halt(guild_id, queue, 60, aself.translator.translate("alone_notice", guild_id))
+        await self.halt(guild_id, queue, 60, self.translator.translate("alone_notice", guild_id))
         self.cancel_halt_task(queue)
 
     async def halt(self, guild_id, queue, halt_time, reason):
