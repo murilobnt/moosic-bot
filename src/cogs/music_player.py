@@ -5,6 +5,7 @@ import time
 import re
 import datetime
 import validators
+import traceback
 
 from discord import FFmpegPCMAudio, PCMVolumeTransformer
 from discord.ext import commands
@@ -62,16 +63,21 @@ class MusicPlayer(commands.Cog):
 
         queue['song_index'] = url_int
 
-    async def handle_on_playlist_url(self, guild_id, queue, info, author_mention):
-        return
+    async def handle_on_playlist_url(self, guild_id, queue, info, author_mention, created_queue, text_channel):
+        if not info.get('webpage_url'):
+            if created_queue:
+                self.ensure_queue_deleted(guild_id)
+            raise MoosicError("er_ytdl")
         parsed_query = parse_qs(urlparse(info.get('webpage_url')).query)
         if not parsed_query or not parsed_query.get('v'):
-            raise MoosicError(self.translator.translate("er_ytdl", ctx.guild.id))
-        info = self.ytdl.extract_info("https://youtube.com/watch?v=bruh", download=False)
+            if created_queue:
+                self.ensure_queue_deleted(guild_id)
+            raise MoosicError("er_ytdl")
+        info = self.ytdl.extract_info(f"https://youtube.com/watch?v={parsed_query['v'][0]}", download=False)
         self.verify_info_fields(info)
-        await self.enqueue_song(guild_id, queue, info, author_mention)
+        await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
 
-    async def handle_input(self, guild_id, queue, url, author_mention):
+    async def handle_input(self, guild_id, queue, url, author_mention, created_queue, text_channel):
         if validators.url(url):
             # url handling
             try:
@@ -81,22 +87,24 @@ class MusicPlayer(commands.Cog):
                 raise MoosicError(self.translator.translate("er_url", guild_id))
 
             if info.get('_type') and info.get('_type') == 'playlist':
-                await self.enqueue_playlist(guild_id, queue, info['entries'], author_mention)
+                await self.enqueue_playlist(guild_id, text_channel, queue, info['entries'], author_mention)
             elif info.get('_type') and info.get('_type') == 'url' and info.get('extractor_key') and info.get('extractor_key') == 'YoutubeTab':
-                await self.handle_on_playlist_url(guild_id, queue, info, author_mention)
+                await self.handle_on_playlist_url(guild_id, queue, info, author_mention, created_queue, text_channel)
             else:
                 self.verify_info_fields(info)
-                await self.enqueue_song(guild_id, queue, info, author_mention)
+                await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
         else:
             # search handling
             try:
                 info = self.ytdl.extract_info(f"ytsearch:{url}", download=False).get('entries')[0]
             except Exception:
                 print(traceback.format_exc())
+                if created_queue:
+                    self.ensure_queue_deleted(ctx.guild.id)
                 raise MoosicError(self.translator.translate("er_url", guild_id))
 
             self.verify_info_fields(info)
-            await self.enqueue_song(guild_id, queue, info, author_mention)
+            await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
 
     async def connect_and_play(self, ctx, queue):
         try:
@@ -157,7 +165,7 @@ class MusicPlayer(commands.Cog):
                 if not queue.get('halt_task'):
                     queue['connection'].stop()
             else:
-                await self.handle_input(ctx.guild.id, queue, url, ctx.author.mention)
+                await self.handle_input(ctx.guild.id, queue, url, ctx.author.mention, created_queue, ctx.message.channel)
         except MoosicError as e:
             if created_queue:
                 self.servers_queues.pop(ctx.guild.id)
@@ -189,7 +197,7 @@ class MusicPlayer(commands.Cog):
         self.servers_queues[guild_id] = queue
         return queue
 
-    async def enqueue_song(self, guild_id, queue, info, mention):
+    async def enqueue_song(self, guild_id, text_channel, queue, info, mention):
             meta = { 'title'    : info.get('title'),
                      'url'      : f"https://youtube.com/watch?v={info.get('id')}",
                      'duration' : info.get('duration')
@@ -199,9 +207,10 @@ class MusicPlayer(commands.Cog):
             embed = discord.Embed(
                     description=description,
                     color=0xcc0000)
-            await queue['text_channel'].send(embed=embed)
+            queue['text_channel'] = text_channel
+            await text_channel.send(embed=embed)
     
-    async def enqueue_playlist(self, guild_id, queue, playlist_items, mention):
+    async def enqueue_playlist(self, guild_id, text_channel, queue, playlist_items, mention):
         for item in playlist_items:
             meta = { 'title'    : item.get('title'),
                      'url'      : f"https://youtube.com/watch?v={item.get('url')}",
@@ -209,11 +218,12 @@ class MusicPlayer(commands.Cog):
                     }
             queue['meta_list'].append(meta)
 
-        description = self.translator.translate("pl_add", guild_id).format(pl_len=len(playlist_items))
+        description = self.translator.translate("pl_add", guild_id).format(pl_len=len(playlist_items), mention=mention)
         embed = discord.Embed(
                 description=description,
                 color=0xcc0000)
-        await queue['text_channel'].send(embed=embed)
+        queue['text_channel'] = text_channel
+        await text_channel.send(embed=embed)
 
     def basic_verifications(self, ctx):
         self.basic_verifications_without_songs(ctx)
