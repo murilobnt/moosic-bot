@@ -376,7 +376,7 @@ class MusicPlayer(commands.Cog):
                     color=0xedd400)
             await ctx.send(embed=embed)
 
-    @commands.command(aliases=['q', 'fila'], description="ldesc_queue", pass_context=True)
+    @commands.command(aliases=['q', 'fila', 'f', 'cola', 'c'], description="ldesc_queue", pass_context=True)
     async def queue(self, ctx):
         """Mostra informações da lista de músicas"""
         self.basic_verifications(ctx)
