@@ -52,6 +52,7 @@ Whoops! Houve um erro de download para {title}. Ele será pulado :)
 ```
         """,
         "play_np" : "Tocando agora",
+        "play_duration" : "Duração",
         "inactive_notice" : "Por estar inativo, vou sair da call. Tchau tchau!",
         "alone_notice" : "Estou a sós na call por um tempo. Saindo!",
         "q_next" : "Próxima música",
@@ -148,6 +149,7 @@ Whoops! There was an download error for {title}. It will be skipped :)
 ```
         """,
         "play_np" : "Now playing",
+        "play_duration" : "Duration",
         "inactive_notice" : "For I'm inactive, I'm leaving the vc. Bye bye!",
         "alone_notice" : "I'm alone in the vc for a while. Leaving!",
         "q_next" : "Next song",
@@ -245,6 +247,7 @@ Whoops! Hubo un error de download para {title}. Será saltado :)
 ```
         """,
         "play_np" : "Tocando ahora",
+        "play_duration" : "Duración",
         "inactive_notice" : "Porque estoy inactivo, me voy a salir del voice. ¡Adioooos!",
         "alone_notice" : "Estoy solo en el voice por un tiempo. ¡Dejando!",
         "q_next" : "Siguiente música",

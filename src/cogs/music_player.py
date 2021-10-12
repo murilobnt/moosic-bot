@@ -611,10 +611,12 @@ class MusicPlayer(commands.Cog):
             duration = song['duration']
             live = True if duration == 0 else False
             if not live:
+                duration_label = self.translator.translate("play_duration", guild_id)
                 if duration >= 3600:
-                    formatted_duration = time.strftime("Duração: %H:%M:%S", time.gmtime(int(duration)))
+                    formatted_d = time.strftime("%H:%M:%S", time.gmtime(int(duration)))
                 else:
-                    formatted_duration = time.strftime("Duração: %M:%S", time.gmtime(int(duration)))
+                    formatted_d = time.strftime("%M:%S", time.gmtime(int(duration)))
+                formatted_duration = f"{duration_label}: {formatted_d}"
             else:
                 formatted_duration = "LIVE"
 
