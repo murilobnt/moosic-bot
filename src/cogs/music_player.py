@@ -391,7 +391,7 @@ class MusicPlayer(commands.Cog):
         elapsed = int((now - queue['elapsed_time']) - time_paused) if queue['elapsed_time'] else 0
         song_index = queue['song_index']
 
-        il_index = "q_norep" if queue['loop'] == LoopState.NOT_ON_LOOP else "qrep" if queue['loop'] == LoopState.LOOP_QUEUE else "q_songrep" if queue['loop'] == LoopState.LOOP_TRACK else ":P"
+        il_index = "q_norep" if queue['loop'] == LoopState.NOT_ON_LOOP else "q_qrep" if queue['loop'] == LoopState.LOOP_QUEUE else "q_songrep" if queue['loop'] == LoopState.LOOP_TRACK else ":P"
         in_loop = ""
 
         if il_index == "q_songrep":
@@ -421,14 +421,12 @@ class MusicPlayer(commands.Cog):
                     page += 1
                     if page > last_page:
                         page = 0
-                    songs = self.build_text(meta_list, elapsed, song_index, page)
                     await msg.edit(content=self.build_page(ctx.guild.id, songs, in_loop, page, last_page))
                     await msg.remove_reaction(reaction, user)
                 elif str(reaction.emoji) == "◀️":
                     page -= 1
                     if page < 0:
                         page = last_page
-                    songs = self.build_text(meta_list, elapsed, song_index, page)
                     await msg.edit(content=self.build_page(ctx.guild.id, songs, in_loop, page, last_page))
                     await msg.remove_reaction(reaction, user)
                 else:
