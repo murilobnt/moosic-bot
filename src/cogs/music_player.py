@@ -632,6 +632,11 @@ class MusicPlayer(commands.Cog):
         else:
             options['options'] = queue['same_song']['options']
 
+        try:
+            self.ytdl.cache.remove()
+        except youtube_dl.DownloadError as e:
+            pass
+
         connection.play(FFmpegPCMAudio(queue['current_audio_url'], **options), after=partial(self.loop_handler, connection.loop, guild_id, queue))
 
         if not queue['same_song']:
