@@ -46,7 +46,7 @@ class MusicPlayer(commands.Cog):
         if not ctx.author.voice:
             raise MoosicError(self.translator.translate("er_con", ctx.guild.id))
 
-    def verify_connection(self, queue):
+    def verify_connection(self, ctx, queue):
         if not queue.get('connection'):
             raise MoosicError(self.translator.translate("er_conb", ctx.guild.id))
 
@@ -156,11 +156,11 @@ class MusicPlayer(commands.Cog):
             song_index = int(url)
         except ValueError:
             pass
-
+        
         try:
             if song_index:
-                self.verify_connection(queue)
-                self.verify_no_songs(queue)
+                self.verify_connection(ctx, queue)
+                self.verify_no_songs(ctx, queue)
                 await self.play_song_index(ctx, queue, song_index)
                 if not queue.get('halt_task'):
                     queue['connection'].stop()
@@ -203,7 +203,7 @@ class MusicPlayer(commands.Cog):
                      'duration' : info.get('duration')
                     }
             queue['meta_list'].append(meta)
-            description = self.translator.translate("song_add", guild_id).format(title=meta.get('title'), url=meta.get('url'), mention=mention)
+            description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
             embed = discord.Embed(
                     description=description,
                     color=0xcc0000)
@@ -227,7 +227,7 @@ class MusicPlayer(commands.Cog):
 
     def basic_verifications(self, ctx):
         self.basic_verifications_without_songs(ctx)
-        self.verify_no_songs(self.servers_queues.get(ctx.guild.id))
+        self.verify_no_songs(ctx, self.servers_queues.get(ctx.guild.id))
 
     def basic_verifications_without_songs(self, ctx):
         self.verify_registry(ctx)
@@ -364,26 +364,27 @@ class MusicPlayer(commands.Cog):
             complement_bar = 20 - completion_bar
 
             progress_bar = '' + "▮"*completion_bar + "▯"*complement_bar
-            description = self.translator.translate("np_succnorm", ctx.guild.id).format(title=song.get('title'), weburl=song.get('web_url'), mention=ctx.author.mention, progress_bar=progress_bar, formatted_elapsed=formatted_elapsed, formatted_duration=formatted_duration)
+            description = self.translator.translate("np_succnorm", ctx.guild.id).format(index=queue['song_index']+1, title=song.get('title'), weburl=song.get('web_url'), mention=ctx.author.mention, progress_bar=progress_bar, formatted_elapsed=formatted_elapsed, formatted_duration=formatted_duration)
             embed = discord.Embed(
                     description=description,
                     color=0xedd400)
             await ctx.send(embed=embed)
         else:
-            description = self.translator.translate("np_succlive", ctx.guild.id).format(title=song.get('title'), weburl=song.get('web_url'), mention=ctx.author.mention, formatted_elapsed=formatted_elapsed)
+            description = self.translator.translate("np_succlive", ctx.guild.id).format(index=queue['song_index']+1, title=song.get('title'), weburl=song.get('web_url'), mention=ctx.author.mention, formatted_elapsed=formatted_elapsed)
             embed = discord.Embed(
                     description=description,
                     color=0xedd400)
             await ctx.send(embed=embed)
 
     @commands.command(aliases=['q', 'fila', 'f', 'cola', 'c'], description="ldesc_queue", pass_context=True)
-    async def queue(self, ctx):
+    async def queue(self, ctx, song_index : int = None):
         """Mostra informações da lista de músicas"""
         self.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
 
         meta_list = queue['meta_list'][:]
-        page = 0
+        start = 0 if not song_index else min(len(meta_list), song_index)
+        page = int((start - 1) / 10)
         last_page = int((len(meta_list) - 1) / 10)
 
         now = time.time()
@@ -399,16 +400,12 @@ class MusicPlayer(commands.Cog):
         elif il_index == ":P":
             in_loop = ":P"
         else:
-            in_loop = self.translator.translate(il_index, ctx.guild.id)
+            in_loop = self.translator.translate(il_index, ctx.guild.id) 
 
-        songs = self.build_text(ctx.guild.id, meta_list, elapsed, song_index, page)
-        current_page = self.build_page(ctx.guild.id, songs, in_loop, page, last_page)
-
-        msg = await ctx.send(self.build_page(ctx.guild.id, songs, in_loop, page, last_page))
-        if page == last_page:
-            return
-        await msg.add_reaction("◀️")
-        await msg.add_reaction("▶️")
+        msg = await ctx.send(self.build_page(ctx.guild.id, self.build_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
+        if last_page > 0:
+            await msg.add_reaction("◀️")
+            await msg.add_reaction("▶️")
 
         def check(reaction, user):
             return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
@@ -421,13 +418,14 @@ class MusicPlayer(commands.Cog):
                     page += 1
                     if page > last_page:
                         page = 0
-                    await msg.edit(content=self.build_page(ctx.guild.id, songs, in_loop, page, last_page))
+
+                    await msg.edit(content=self.build_page(ctx.guild.id, self.build_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
                     await msg.remove_reaction(reaction, user)
                 elif str(reaction.emoji) == "◀️":
                     page -= 1
                     if page < 0:
                         page = last_page
-                    await msg.edit(content=self.build_page(ctx.guild.id, songs, in_loop, page, last_page))
+                    await msg.edit(content=self.build_page(ctx.guild.id, self.build_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
                     await msg.remove_reaction(reaction, user)
                 else:
                     await msg.remove_reaction(reaction, user)
@@ -457,7 +455,7 @@ class MusicPlayer(commands.Cog):
                 formatted_duration = "LIVE"
 
             songs = songs + str(it) + f". {entry.get('title')}, {formatted_duration}"
-            if it == song_index + 1 and page == 0:
+            if it == song_index + 1:
                 if not live:
                     songs = songs + self.translator.translate("q_np", guild_id)
                 else:
@@ -515,7 +513,7 @@ class MusicPlayer(commands.Cog):
         if not self.servers_queues.get(ctx.guild.id):
             raise MoosicError(self.translator.translate("er_vr", ctx.guild.id))
 
-    def verify_no_songs(self, queue):
+    def verify_no_songs(self, ctx, queue):
         if not queue.get('meta_list'):
             raise MoosicError(self.translator.translate("er_vns", ctx.guild.id))
 
@@ -599,6 +597,11 @@ class MusicPlayer(commands.Cog):
 
         if not queue['same_song']:
             try:
+                self.ytdl.cache.remove()
+            except youtube_dl.DownloadError as e:
+                pass
+
+            try:
                 to_play = self.ytdl.extract_info(song.get("url"), download=False)
             except youtube_dl.utils.DownloadError:
                 await text_channel.send(self.translator.translate("er_playdl", guild_id).format(title=song['title']))
@@ -622,7 +625,7 @@ class MusicPlayer(commands.Cog):
 
             name = self.translator.translate("play_np", guild_id)
             embed=discord.Embed(
-                    title=song.get('title'), 
+                    title=f"{queue.get('song_index') + 1}. {song.get('title')}", 
                     url=to_play.get('url'), 
                     description=formatted_duration, 
                     color=0xf57900)
@@ -631,11 +634,6 @@ class MusicPlayer(commands.Cog):
             queue['now_playing_message'] = await text_channel.send(embed=embed)
         else:
             options['options'] = queue['same_song']['options']
-
-        try:
-            self.ytdl.cache.remove()
-        except youtube_dl.DownloadError as e:
-            pass
 
         connection.play(FFmpegPCMAudio(queue['current_audio_url'], **options), after=partial(self.loop_handler, connection.loop, guild_id, queue))
 
