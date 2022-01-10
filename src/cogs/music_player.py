@@ -1,5 +1,5 @@
 import discord
-import youtube_dl
+import yt_dlp
 import asyncio
 import time
 import re
@@ -31,11 +31,11 @@ class MusicPlayer(commands.Cog):
         self.bot = bot
         self.servers_queues = {}
         self.translator = Translator(servers_settings)
-        self.ytdl = youtube_dl.YoutubeDL({'format'         : 'bestaudio/best', 
-                                          'source_address' : '0.0.0.0', 
-                                          'cookiefile'     : 'cookies.txt',
-                                          'noplaylist'     : True, 
-                                          'extract_flat'   : True})
+        self.ytdl = yt_dlp.YoutubeDL({'format'         : 'bestaudio/best', 
+                                      'source_address' : '0.0.0.0', 
+                                      'cookiefile'     : 'cookies.txt',
+                                      'noplaylist'     : True, 
+                                      'extract_flat'   : True})
 
         try:
             self.ytdl.cache.remove()
@@ -621,7 +621,7 @@ class MusicPlayer(commands.Cog):
             else:
                 formatted_duration = "LIVE"
 
-            queue['current_audio_url'] = to_play.get('formats')[0].get('url')
+            queue['current_audio_url'] = to_play.get('formats')[3].get('url')
 
             name = self.translator.translate("play_np", guild_id)
             embed=discord.Embed(
@@ -635,7 +635,7 @@ class MusicPlayer(commands.Cog):
         else:
             options['options'] = queue['same_song']['options']
 
-        connection.play(FFmpegPCMAudio(queue['current_audio_url'], **options), after=partial(self.loop_handler, connection.loop, guild_id, queue))
+        connection.play(FFmpegPCMAudio(queue['current_audio_url'], before_options=options['options']), after=partial(self.loop_handler, connection.loop, guild_id, queue))
 
         if not queue['same_song']:
             queue['elapsed_time'] = time.time()

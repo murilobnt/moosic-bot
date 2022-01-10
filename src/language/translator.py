@@ -1,6 +1,5 @@
 from enum import Enum
 
-from src.database.async_database import connect_db
 from src.language.translation_data import data
 
 class SupportedLanguages(Enum):
