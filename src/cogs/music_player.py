@@ -18,7 +18,7 @@ from src.database.async_database import create_get_guild_record
 from src.language.translator import Translator
 
 class Filter:
-        FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
+        FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
 class LoopState(Enum):
     NOT_ON_LOOP = 1
@@ -322,7 +322,7 @@ class MusicPlayer(commands.Cog):
         if failed1 and failed2:
             gap = int(timestamp)
 
-        queue['same_song'] = {'gap': gap, 'options': f"-vn -http_persistent 0 -ss {timestamp}"} 
+        queue['same_song'] = {'gap': gap, 'before_options': f"-ss {timestamp}"} 
         queue['connection'].stop()
         await ctx.message.add_reaction("\U00002705")
 
@@ -630,13 +630,12 @@ class MusicPlayer(commands.Cog):
                     description=formatted_duration, 
                     color=0xf57900)
             embed.set_author(name=name)
-            #embed.set_thumbnail(url=to_play.get('thumbnails')[-1].get('url'))
             embed.set_thumbnail(url=to_play.get('thumbnail'))
             queue['now_playing_message'] = await text_channel.send(embed=embed)
         else:
-            options['options'] = queue['same_song']['options']
+            options['before_options'] = f"{options['before_options']} {queue['same_song']['before_options']}"
 
-        connection.play(FFmpegPCMAudio(queue['current_audio_url'], before_options=options['options']), after=partial(self.loop_handler, connection.loop, guild_id, queue))
+        connection.play(FFmpegPCMAudio(queue['current_audio_url'], **options), after=partial(self.loop_handler, connection.loop, guild_id, queue))
 
         if not queue['same_song']:
             queue['elapsed_time'] = time.time()
