@@ -348,7 +348,7 @@ class MusicPlayer(commands.Cog):
         else:
             formatted_elapsed = (time.strftime("%-Hh %-Mm %-Ss", time.gmtime(elapsed)))
 
-        live = True if duration == 0 else False
+        live = True if not duration else False
         if not live:
             if duration < 60:
                 formatted_duration = (time.strftime("%-Ss", time.gmtime(duration)))
@@ -439,7 +439,7 @@ class MusicPlayer(commands.Cog):
         index = it
 
         for entry in meta_list[index - 1 : (index - 1) + 10]:
-            live = True if entry['duration'] == 0 else False
+            live = True if not entry.get('duration') else False
 
             if not live:
                 if it == song_index + 1 and page == 0:
@@ -610,7 +610,7 @@ class MusicPlayer(commands.Cog):
                 return
 
             duration = song['duration']
-            live = True if duration == 0 else False
+            live = True if not duration else False
             if not live:
                 duration_label = self.translator.translate("play_duration", guild_id)
                 if duration >= 3600:
