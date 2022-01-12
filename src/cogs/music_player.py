@@ -322,7 +322,7 @@ class MusicPlayer(commands.Cog):
         if failed1 and failed2:
             gap = int(timestamp)
 
-        queue['same_song'] = {'gap': gap, 'options': f"-vn -ss {timestamp}"} 
+        queue['same_song'] = {'gap': gap, 'options': f"-vn -http_persistent 0 -ss {timestamp}"} 
         queue['connection'].stop()
         await ctx.message.add_reaction("\U00002705")
 
@@ -602,7 +602,7 @@ class MusicPlayer(commands.Cog):
                 pass
 
             try:
-                to_play = self.ytdl.extract_info(song.get("url"), download=False)
+                to_play = self.ytdl.sanitize_info(self.ytdl.extract_info(song.get("url"), download=False))
             except youtube_dl.utils.DownloadError:
                 await text_channel.send(self.translator.translate("er_playdl", guild_id).format(title=song['title']))
 
@@ -621,7 +621,7 @@ class MusicPlayer(commands.Cog):
             else:
                 formatted_duration = "LIVE"
 
-            queue['current_audio_url'] = to_play.get('formats')[3].get('url')
+            queue['current_audio_url'] = to_play.get('url')
 
             name = self.translator.translate("play_np", guild_id)
             embed=discord.Embed(
@@ -630,7 +630,8 @@ class MusicPlayer(commands.Cog):
                     description=formatted_duration, 
                     color=0xf57900)
             embed.set_author(name=name)
-            embed.set_thumbnail(url=to_play.get('thumbnails')[-1].get('url'))
+            #embed.set_thumbnail(url=to_play.get('thumbnails')[-1].get('url'))
+            embed.set_thumbnail(url=to_play.get('thumbnail'))
             queue['now_playing_message'] = await text_channel.send(embed=embed)
         else:
             options['options'] = queue['same_song']['options']
