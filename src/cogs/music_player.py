@@ -385,13 +385,13 @@ class MusicPlayer(commands.Cog):
             complement_bar = 20 - completion_bar
 
             progress_bar = '' + "▮"*completion_bar + "▯"*complement_bar
-            description = self.translator.translate("np_succnorm", ctx.guild.id).format(index=queue['song_index']+1, title=song.get('title'), weburl=song.get('web_url'), mention=ctx.author.mention, progress_bar=progress_bar, formatted_elapsed=formatted_elapsed, formatted_duration=formatted_duration)
+            description = self.translator.translate("np_succnorm", ctx.guild.id).format(index=queue['song_index']+1, title=song.get('title'), weburl=song.get('url'), mention=ctx.author.mention, progress_bar=progress_bar, formatted_elapsed=formatted_elapsed, formatted_duration=formatted_duration)
             embed = discord.Embed(
                     description=description,
                     color=0xedd400)
             await ctx.send(embed=embed)
         else:
-            description = self.translator.translate("np_succlive", ctx.guild.id).format(index=queue['song_index']+1, title=song.get('title'), weburl=song.get('web_url'), mention=ctx.author.mention, formatted_elapsed=formatted_elapsed)
+            description = self.translator.translate("np_succlive", ctx.guild.id).format(index=queue['song_index']+1, title=song.get('title'), weburl=song.get('url'), mention=ctx.author.mention, formatted_elapsed=formatted_elapsed)
             embed = discord.Embed(
                     description=description,
                     color=0xedd400)
