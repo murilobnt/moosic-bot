@@ -13,6 +13,7 @@ from enum import Enum
 from functools import partial
 from urllib.parse import urlparse, parse_qs
 
+from src.utils.music_verifications import MusicVerifications
 from src.utils.moosic_error import MoosicError
 from src.database.async_database import create_get_guild_record
 from src.language.translator import Translator
@@ -31,6 +32,7 @@ class MusicPlayer(commands.Cog):
         self.bot = bot
         self.servers_queues = {}
         self.translator = Translator(servers_settings)
+        self.verificator = MusicVerifications(self.translator, self.servers_queues)
         self.ytdl = yt_dlp.YoutubeDL({'format'         : 'bestaudio/best', 
                                       'source_address' : '0.0.0.0', 
                                       'cookiefile'     : 'cookies.txt',
@@ -41,18 +43,6 @@ class MusicPlayer(commands.Cog):
             self.ytdl.cache.remove()
         except youtube_dl.DownloadError as e:
             pass
-
-    def verify_user_voice(self, ctx):
-        if not ctx.author.voice:
-            raise MoosicError(self.translator.translate("er_con", ctx.guild.id))
-
-    def verify_connection(self, ctx, queue):
-        if not queue.get('connection'):
-            raise MoosicError(self.translator.translate("er_conb", ctx.guild.id))
-
-    def verify_info_fields(self, info):
-        if not info.get('title') or not info.get('url'):
-            raise MoosicError(self.translator.translate("er_down", ctx.guild.id))
 
     async def play_song_index(self, ctx, queue, song_index):
         modifier = 2 if not queue.get('halt_task') and not queue.get('loop') == LoopState.LOOP_TRACK else 1
@@ -74,7 +64,7 @@ class MusicPlayer(commands.Cog):
                 self.ensure_queue_deleted(guild_id)
             raise MoosicError("er_ytdl")
         info = self.ytdl.extract_info(f"https://youtube.com/watch?v={parsed_query['v'][0]}", download=False)
-        self.verify_info_fields(info)
+        self.verificator.verify_info_fields(info)
         await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
 
     async def handle_input(self, guild_id, queue, url, author_mention, created_queue, text_channel):
@@ -91,7 +81,7 @@ class MusicPlayer(commands.Cog):
             elif info.get('_type') and info.get('_type') == 'url' and info.get('extractor_key') and info.get('extractor_key') == 'YoutubeTab':
                 await self.handle_on_playlist_url(guild_id, queue, info, author_mention, created_queue, text_channel)
             else:
-                self.verify_info_fields(info)
+                self.verificator.verify_info_fields(info)
                 await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
         else:
             # search handling
@@ -103,7 +93,7 @@ class MusicPlayer(commands.Cog):
                     self.ensure_queue_deleted(ctx.guild.id)
                 raise MoosicError(self.translator.translate("er_url", guild_id))
 
-            self.verify_info_fields(info)
+            self.verificator.verify_info_fields(info)
             await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
 
     async def connect_and_play(self, ctx, queue):
@@ -132,7 +122,7 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['p', 't', 'tocar'], description="ldesc_play", pass_context=True)
     async def play(self, ctx, *, url : str):
         """Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz"""
-        self.verify_user_voice(ctx)
+        self.verificator.verify_user_voice(ctx)
 
         channel_permissions = ctx.author.voice.channel.permissions_for(ctx.guild.me)
         if not channel_permissions.connect or not channel_permissions.speak:
@@ -159,8 +149,8 @@ class MusicPlayer(commands.Cog):
         
         try:
             if song_index:
-                self.verify_connection(ctx, queue)
-                self.verify_no_songs(ctx, queue)
+                self.verificator.verify_connection(ctx, queue)
+                self.verificator.verify_no_songs(ctx, queue)
                 await self.play_song_index(ctx, queue, song_index)
                 if not queue.get('halt_task'):
                     queue['connection'].stop()
@@ -213,7 +203,7 @@ class MusicPlayer(commands.Cog):
     async def enqueue_playlist(self, guild_id, text_channel, queue, playlist_items, mention):
         for item in playlist_items:
             meta = { 'title'    : item.get('title'),
-                     'url'      : f"https://youtube.com/watch?v={item.get('url')}",
+                     'url'      : f"https://youtube.com/watch?v={item.get('id')}",
                      'duration' : item.get('duration')
                     }
             queue['meta_list'].append(meta)
@@ -225,24 +215,12 @@ class MusicPlayer(commands.Cog):
         queue['text_channel'] = text_channel
         await text_channel.send(embed=embed)
 
-    def basic_verifications(self, ctx):
-        self.basic_verifications_without_songs(ctx)
-        self.verify_no_songs(ctx, self.servers_queues.get(ctx.guild.id))
-
-    def basic_verifications_without_songs(self, ctx):
-        self.verify_registry(ctx)
-        self.verify_same_voice(ctx)
-
-    def verify_is_playing(self, queue):
-        if queue['song_index'] >= len(queue['meta_list']):
-            raise MoosicError(self.translator.translate("er_nosong", ctx.guild.id))
-
     @commands.command(aliases=['pular'], description="ldesc_skip", pass_context=True) 
     async def skip(self, ctx, *, how_many : int = None):
         """Pula um determinado número de músicas na fila"""
-        self.basic_verifications(ctx)
+        self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
-        self.verify_is_playing(queue)
+        self.verificator.verify_is_playing(queue)
         if how_many:
             try:
                 how_many = int(how_many)
@@ -268,9 +246,9 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['pausar'], description="ldesc_pause", pass_context=True)
     async def pause(self, ctx):
         """Pausa a música que está tocando"""
-        self.basic_verifications(ctx)
+        self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
-        self.verify_is_playing(queue)
+        self.verificator.verify_is_playing(queue)
 
         if queue.get('paused_time'):
             raise MoosicError(self.translator.translate("er_paused", ctx.guild.id))
@@ -282,9 +260,9 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['resumir'], description="ldesc_resume", pass_context=True)
     async def resume(self, ctx):
         """Resume a música que estava tocando"""
-        self.basic_verifications(ctx)
+        self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
-        self.verify_is_playing(queue)
+        self.verificator.verify_is_playing(queue)
 
         if not queue.get('paused_time'):
             raise MoosicError(self.translator.translate("er_nopause", ctx.guild.id))
@@ -298,7 +276,7 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['time', 'to', 'para', 'em', 'tempo'], description="ldesc_seek", pass_context=True)
     async def seek(self, ctx, timestamp : str):
         """Vai para um determinado tempo da música"""
-        self.basic_verifications(ctx)
+        self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
 
         if not re.match('^(\d{1,2}:)?(\d{1,2}:)?(\d{1,2})$', timestamp) and not re.match('^\d+$', timestamp):
@@ -329,9 +307,9 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['now_playing', 'tocando_agora', 'ta'], description="ldesc_np", pass_context=True)
     async def np(self, ctx):
         """Disponibiliza informações da música que está tocando"""
-        self.basic_verifications(ctx)
+        self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
-        self.verify_is_playing(queue)
+        self.verificator.verify_is_playing(queue)
 
         if not queue['elapsed_time']:
             raise MoosicError(self.translator.translate("er_npdat", ctx.guild.id))
@@ -379,7 +357,7 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['q', 'fila', 'f', 'cola', 'c'], description="ldesc_queue", pass_context=True)
     async def queue(self, ctx, song_index : int = None):
         """Mostra informações da lista de músicas"""
-        self.basic_verifications(ctx)
+        self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
 
         meta_list = queue['meta_list'][:]
@@ -479,7 +457,7 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['dc', 'quit'], description="ldesc_disconnect", pass_context=True)
     async def disconnect(self, ctx):
         """Desconecta o bot da chamada e encerra tudo"""
-        self.verify_same_voice(ctx)
+        self.verificator.verify_same_voice(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
 
         if queue:
@@ -505,22 +483,10 @@ class MusicPlayer(commands.Cog):
         if self.servers_queues.get(guild_id):
             self.servers_queues.pop(guild_id)
 
-    def verify_same_voice(self, ctx):
-        if ctx.author.voice and ctx.voice_client and ctx.author.voice.channel != ctx.voice_client.channel:
-            raise MoosicError(self.translator.translate("er_vsv", ctx.guild.id))
-
-    def verify_registry(self, ctx):
-        if not self.servers_queues.get(ctx.guild.id):
-            raise MoosicError(self.translator.translate("er_vr", ctx.guild.id))
-
-    def verify_no_songs(self, ctx, queue):
-        if not queue.get('meta_list'):
-            raise MoosicError(self.translator.translate("er_vns", ctx.guild.id))
-
     @commands.command(aliases=['remover', 'rm'], description="ldesc_remove", pass_context=True)
     async def remove(self, ctx, index : int):
         """Remove alguma música da fila"""
-        self.basic_verifications(ctx)
+        self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
 
         songs_list = queue.get('meta_list')
@@ -544,7 +510,7 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['repetir'], description="ldesc_loop", pass_context=True)
     async def loop(self, ctx):
         """Altera o modo de loop do bot"""
-        self.basic_verifications_without_songs(ctx)
+        self.verificator.basic_verifications_without_songs(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
         mode = ""
 
