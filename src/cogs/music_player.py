@@ -638,7 +638,7 @@ class MusicPlayer(commands.Cog):
             name = self.translator.translate("play_np", guild_id)
             embed=discord.Embed(
                     title=f"{queue.get('song_index') + 1}. {song.get('title')}", 
-                    url=to_play.get('url'), 
+                    url=song.get('url'), 
                     description=formatted_duration, 
                     color=0xf57900)
             embed.set_author(name=name)
@@ -669,7 +669,8 @@ class MusicPlayer(commands.Cog):
             return
 
         no_music_message = await queue['text_channel'].send(reason)
-        self.servers_queues.pop(guild_id)
+        await self.ensure_now_playing_deleted(queue)
+        self.ensure_queue_deleted(guild_id)
         await queue['connection'].disconnect()
         await no_music_message.delete(delay=30)
 
