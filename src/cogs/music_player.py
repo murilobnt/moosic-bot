@@ -67,34 +67,74 @@ class MusicPlayer(commands.Cog):
         self.verificator.verify_info_fields(info)
         await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
 
-    async def handle_input(self, guild_id, queue, url, author_mention, created_queue, text_channel):
+    async def handle_input(self, guild_id, queue, url, author, created_queue, text_channel):
         if validators.url(url):
             # url handling
             try:
                 info = self.ytdl.extract_info(url, download=False)
-            except Exception:
+            except:
                 print(traceback.format_exc())
                 raise MoosicError(self.translator.translate("er_url", guild_id))
 
             if info.get('_type') and info.get('_type') == 'playlist':
-                await self.enqueue_playlist(guild_id, text_channel, queue, info['entries'], author_mention)
+                await self.enqueue_playlist(guild_id, text_channel, queue, info['entries'], author.mention)
             elif info.get('_type') and info.get('_type') == 'url' and info.get('extractor_key') and info.get('extractor_key') == 'YoutubeTab':
-                await self.handle_on_playlist_url(guild_id, queue, info, author_mention, created_queue, text_channel)
+                await self.handle_on_playlist_url(guild_id, queue, info, author.mention, created_queue, text_channel)
             else:
                 self.verificator.verify_info_fields(info)
-                await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
+                await self.enqueue_song(guild_id, text_channel, queue, info, author.mention)
         else:
             # search handling
             try:
-                info = self.ytdl.extract_info(f"ytsearch:{url}", download=False).get('entries')[0]
+                entries = self.ytdl.extract_info(f"ytsearch5:{url}", download=False).get('entries')
             except Exception:
                 print(traceback.format_exc())
                 if created_queue:
                     self.ensure_queue_deleted(ctx.guild.id)
                 raise MoosicError(self.translator.translate("er_url", guild_id))
 
+            trans_words = {'by' : self.translator.translate("play_by", guild_id)}
+            choice_picker = await text_channel.send(self.translator.translate("play_buildt", guild_id).format(songs_str=self.build_choose_text(entries, trans_words)))
+            try:
+                response = await self.bot.wait_for('message', timeout=30, check=lambda message: message.author == author and message.channel == text_channel)
+            except asyncio.TimeoutError:
+                await choice_picker.delete()
+                raise MoosicError(self.translator.translate("er_shtimeout", guild_id))
+            try:
+                choice = int(response.content)
+                if choice < 1 or choice > len(entries):
+                    await choice_picker.delete()
+                    raise MoosicError(self.translator.translate("er_shoutlen", guild_id))
+                info = entries[choice - 1]
+                await choice_picker.delete()
+            except ValueError:
+                await choice_picker.delete()
+                msg = await text_channel.send(self.translator.translate("play_shcancel", guild_id))
+                await msg.delete(delay=10)
+                return 1
+                
             self.verificator.verify_info_fields(info)
-            await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
+            await self.enqueue_song(guild_id, text_channel, queue, info, author.mention)
+
+    def format_duration(self, duration):
+        if not duration:
+            return "LIVE"
+        if duration >= 3600:
+            return time.strftime("%H:%M:%S", time.gmtime(int(duration)))
+        else:
+            return time.strftime("%M:%S", time.gmtime(int(duration)))
+
+    def build_choose_text(self, entries, trans_words):
+        songs_str = ""
+        i = 1
+        for entry in entries:
+            formatted_duration = self.format_duration(entry.get('duration'))
+            songs_str = songs_str + "[" + str(i) + f"] : {entry.get('title')} <{trans_words.get('by')} {entry.get('uploader')}, {formatted_duration}>"
+            if not i == len(entries):
+                songs_str = songs_str + "\n"
+            i += 1
+
+        return songs_str
 
     async def connect_and_play(self, ctx, queue):
         try:
@@ -155,18 +195,21 @@ class MusicPlayer(commands.Cog):
                 if not queue.get('halt_task'):
                     queue['connection'].stop()
             else:
-                await self.handle_input(ctx.guild.id, queue, url, ctx.author.mention, created_queue, ctx.message.channel)
-        except MoosicError as e:
+                result = await self.handle_input(ctx.guild.id, queue, url, ctx.author, created_queue, ctx.message.channel)
+                if result:
+                    if created_queue:
+                        self.servers_queues.pop(ctx.guild.id)
+                    return
+        except:
             if created_queue:
                 self.servers_queues.pop(ctx.guild.id)
-            raise e
+            raise
 
         if created_queue:
             await self.connect_and_play(ctx, queue)
-        else:
-            if queue['halt_task']:
-                self.cancel_halt_task(queue)
-                await self.play_songs(ctx.guild.id)
+        elif queue.get('halt_task'):
+            self.cancel_halt_task(queue)
+            await self.play_songs(ctx.guild.id)
 
     def create_queue(self, guild_id, text_channel):
         queue = {
@@ -432,12 +475,15 @@ class MusicPlayer(commands.Cog):
             else:
                 formatted_duration = "LIVE"
 
-            songs = songs + str(it) + f". {entry.get('title')}, {formatted_duration}"
             if it == song_index + 1:
+                np = self.translator.translate("q_np", guild_id)
                 if not live:
-                    songs = songs + self.translator.translate("q_np", guild_id)
+                    remaining = self.translator.translate("q_remaining", guild_id)
+                    songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} {remaining} l> {np}"
                 else:
-                    songs = songs + self.translator.translate("q_nplive", guild_id)
+                    songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} l> {np}"
+            else:
+                    songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} l>"
 
             if it == len(meta_list):
                 break

@@ -11,8 +11,9 @@ data = {
         "er_url" : "Algo deu errado com a extração de informações",
         "er_conc" : "Há um problema de conexão com canal. Tchau tchau",
         "er_perm" : "Não tenho permissão para me conectar ou para falar no canal",
+        "er_shoutlen" : "Índice inválido de escolha. A operação foi cancelada",
+        "er_shtimeout" : "30 segundos se passaram. A operação foi cancelada",
         "song_add" : "Adicionado [{title}]({url}) na posição {index} da fila, por {mention}",
-        "song_change" : "Não é a música que você procurava? Digite c para mudar",
         "pl_add" : "Adicionado {pl_len} itens, por {mention}",
         "er_nosong" : "Não há música tocando",
         "er_skipindex" : "Especifique um número válido de músicas para pular",
@@ -27,15 +28,15 @@ data = {
         "q_norep" : "Sem repetição",
         "q_qrep" : "Repetição: Fila",
         "q_songrep" : "Repetição: {song}",
-        "q_np" : " restantes (tocando agora)",
-        "q_nplive" : " (tocando agora)",
+        "q_np" : "(tocando agora)",
+        "q_remaining" : "restantes",
         "q_page"   : """
-```arm
-Fila de reprodução: Página {page_plus} de {last_page_plus}
+```markdown
+Fila de reprodução: <Pagina {page_plus} de {last_page_plus}>
 
 {songs}
 
-{in_loop}
+# {in_loop}
 ```
         """,
         "dc_msg" : "Saindo. Tchau tchau",
@@ -54,6 +55,17 @@ Whoops! Houve um erro de download para {title}. Ele será pulado :)
         """,
         "play_np" : "Tocando agora",
         "play_duration" : "Duração",
+        "play_shcancel" : "Operação cancelada",
+        "play_by" : "por",
+        "play_buildt" : """
+```markdown
+# Por favor, faça sua escolha de música
+
+{songs_str}
+
+[c] : <Cancelar>
+```
+""",
         "inactive_notice" : "Por estar inativo, vou sair da call. Tchau tchau!",
         "alone_notice" : "Estou a sós na call por um tempo. Saindo!",
         "q_next" : "Próxima música",
@@ -109,6 +121,8 @@ Como resposta, você deve especificar o índice da linguagem do bot para o servi
         "er_url" : "Something went wrong about the extraction of the information",
         "er_conc" : "There is a conection problem with the channel. Bye bye",
         "er_perm" : "I don't have permission to connect or speak in the channel",
+        "er_shoutlen" : "Invalid choice index. The operation is canceled",
+        "er_shtimeout" : "30 seconds have passed. The operation is canceled",
         "song_add" : "Added [{title}]({url}) in position {index} of the queue, by {mention}",
         "song_change" : "It is not the song you were looking for? Type c to change",
         "pl_add" : "Added {pl_len} items, by {mention}",
@@ -125,15 +139,15 @@ Como resposta, você deve especificar o índice da linguagem do bot para o servi
         "q_norep" : "No loop",
         "q_qrep" : "Looping: Queue",
         "q_songrep" : "Looping: {song}",
-        "q_np" : " remaining (now playing)",
-        "q_nplive" : " (now playing)",
+        "q_np" : "(now playing)",
+        "q_remaining" : "remaining",
         "q_page"   : """
-```arm
-Song queue: Page {page_plus} of {last_page_plus}
+```markdown
+Song queue: <Page {page_plus} of {last_page_plus}>
 
 {songs}
 
-{in_loop}
+# {in_loop}
 ```
         """,
         "dc_msg" : "Leaving. Bye bye",
@@ -152,6 +166,17 @@ Whoops! There was an download error for {title}. It will be skipped :)
         """,
         "play_np" : "Now playing",
         "play_duration" : "Duration",
+        "play_shcancel" : "Operation canceled",
+        "play_by" : "by",
+        "play_buildt" : """
+```markdown
+# Please, choose your song
+
+{songs_str}
+
+[c] : <Cancel>
+```
+""",
         "inactive_notice" : "For I'm inactive, I'm leaving the vc. Bye bye!",
         "alone_notice" : "I'm alone in the vc for a while. Leaving!",
         "q_next" : "Next song",
@@ -208,6 +233,8 @@ As reply, you must specify the index of the language of the bot for the server. 
         "er_url" : "Algo salió mal al extraer información",
         "er_conc" : "Hay un problema de conexión con el canal. Adiooos",
         "er_perm" : "No tengo permiso para iniciar sesión o hablar en el canal",
+        "er_shoutlen" : "Índice de elección no válido. Se cancela la operación",
+        "er_shtimeout" : "Han pasado 30 segundos. Se cancela la operación",
         "song_add" : "Agregó [{title}]({url}) en la posición {index} de la cola, por {mention}",
         "song_change" : "No era la canción que buscabas? Escriba c para cambiar",
         "pl_add" : "Agregó {pl_len} elementos, por {mention}",
@@ -224,15 +251,15 @@ As reply, you must specify the index of the language of the bot for the server. 
         "q_norep" : "Sin repetición",
         "q_qrep" : "Repetición: Cola",
         "q_songrep" : "Repetición: {song}",
-        "q_np" : " restante (tocando ahora)",
-        "q_nplive" : " (tocando ahora)",
+        "q_np" : "(tocando ahora)",
+        "q_remaining" : "restante",
         "q_page"   : """
-```arm
-Cola de reproducción: Página {page_plus} de {last_page_plus}
+```markdown
+Cola de reproducción: <Pagina {page_plus} de {last_page_plus}>
 
 {songs}
 
-{in_loop}
+# {in_loop}
 ```
         """,
         "dc_msg" : "Estoy saliendo. Adioooos",
@@ -251,6 +278,17 @@ Whoops! Hubo un error de download para {title}. Será saltado :)
         """,
         "play_np" : "Tocando ahora",
         "play_duration" : "Duración",
+        "play_shcancel" : "Operación cancelada",
+        "play_by" : "por",
+        "play_buildt" : """
+```markdown
+# Por favor, haga su elección de música  
+
+{songs_str}
+
+[c] : <Cancelar>
+```
+""",
         "inactive_notice" : "Porque estoy inactivo, me voy a salir del voice. ¡Adioooos!",
         "alone_notice" : "Estoy solo en el voice por un tiempo. ¡Dejando!",
         "q_next" : "Siguiente música",
