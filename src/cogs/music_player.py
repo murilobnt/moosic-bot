@@ -503,7 +503,10 @@ class MusicPlayer(commands.Cog):
     @commands.command(aliases=['dc', 'quit'], description="ldesc_disconnect", pass_context=True)
     async def disconnect(self, ctx):
         """Desconecta o bot da chamada e encerra tudo"""
+        self.verificator.verify_user_voice(ctx)
+        self.verificator.verify_bot_voice(ctx)
         self.verificator.verify_same_voice(ctx)
+
         queue = self.servers_queues.get(ctx.guild.id)
 
         if queue:

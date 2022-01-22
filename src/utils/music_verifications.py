@@ -25,6 +25,10 @@ class MusicVerifications:
         if not ctx.author.voice:
             raise MoosicError(self.translator.translate("er_con", ctx.guild.id))
 
+    def verify_bot_voice(self, ctx):
+        if not ctx.voice_client:
+            raise MoosicError(self.translator.translate("er_conb", ctx.guild.id))
+
     def verify_connection(self, ctx, queue):
         if not queue.get('connection'):
             raise MoosicError(self.translator.translate("er_conb", ctx.guild.id))
