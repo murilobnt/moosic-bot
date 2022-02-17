@@ -8,7 +8,7 @@ import validators
 import traceback
 import os
 
-from datetime import datetime
+import datetime
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord import FFmpegPCMAudio, PCMVolumeTransformer
 from discord.ext import commands
@@ -46,25 +46,6 @@ class MusicPlayer(commands.Cog):
         self.fetcher = StreamURLFetcher()
         self.fetcher._getJS()
 
-        #self.ytdl = yt_dlp.YoutubeDL({'format'         : 'bestaudio/best', 
-        #                              'source_address' : '0.0.0.0', 
-        #                              'extractaudio'   : True,
-        #                              'cookiefile'     : 'cookies.txt',
-        #                              'noplaylist'     : True, 
-        #                              'extract_flat'   : True,
-        #                              'nocheckcertificate': True,
-        #                              'youtube_include_dash_manifest' : False,
-        #                              'noprogress'     : True,
-        #                              'simulate'       : True,
-        #                              'skip_download'  : True
-        #                              })
-
-        #try:
-        #    self.ytdl.cache.remove()
-        #except youtube_dl.DownloadError as e:
-        #    pass
-
-
     async def play_song_index(self, ctx, queue, song_index):
         modifier = 2 if not queue.get('halt_task') and not queue.get('loop') == LoopState.LOOP_TRACK else 1
         url_int = song_index - modifier
@@ -81,7 +62,7 @@ class MusicPlayer(commands.Cog):
                      'title'           : item['track']['name'],
                      'url'             : item['track']['external_urls']['spotify'],
                      'duration'        : int(item['track']['duration_ms'] / 1000),
-                     'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']}"
+                     'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']} spotify"
                    }
             meta_list.append(meta)
         return meta_list
@@ -91,6 +72,7 @@ class MusicPlayer(commands.Cog):
         for item in playlist_items:
             meta = { 'type'     : MetaType.YOUTUBE,
                      'title'    : item.get('title'),
+                     'url'      : f"https://youtube.com/watch?v={item.get('id')}",
                      'id'       : item.get('id'),
                      'duration' : self.time_to_seconds(self.str_to_time(item.get('duration')))
                    }
@@ -108,20 +90,25 @@ class MusicPlayer(commands.Cog):
                         await pl.getNextVideos()
                     await self.enqueue_playlist(guild_id, text_channel, queue, self.youtube_playlist(pl.videos), author.mention)
                 else:
-                    vd = await Video.get(url)
-                    await self.enqueue_song(guild_id, text_channel, queue, vd, author.mention)
+                    try:
+                        vd = await Video.get(url)
+                    except:
+                        raise MoosicError(self.translator.translate("er_himalformed", guild_id))
+                    await self.enqueue_yt_song(guild_id, text_channel, queue, vd, author.mention)
             elif urlparse(url).netloc == "open.spotify.com":
                 if urlparse(url).path.split("/")[1] == "playlist":
                     playlist_URI = url.split("/")[-1].split("?")[0]
                     tracks_uri = self.sp.playlist_tracks(playlist_URI)["items"]
                     await self.enqueue_playlist(guild_id, text_channel, queue, self.spotify_playlist(tracks_uri), author.mention)
                 elif urlparse(url).path.split("/")[1] == "track":
-                    print("Track handling")
+                    track_URI = url.split("/")[-1].split("?")[0]
+                    track = self.sp.track(track_URI)
+                    await self.enqueue_sp_song(guild_id, text_channel, queue, track, author.mention)
                 else:
-                    raise MoosicError("Ainda não suportado")
+                    raise MoosicError(self.translator.translate("er_hispotifyuri", guild_id))
                 return
             else:
-                raise MoosicError("URL não suportada")
+                raise MoosicError(self.translator.translate("er_hidomain", guild_id))
         else:
             # search handling
             try:
@@ -153,7 +140,7 @@ class MusicPlayer(commands.Cog):
                 return 1
                 
             self.verificator.verify_info_fields(info)
-            await self.enqueue_song(guild_id, text_channel, queue, info, author.mention)
+            await self.enqueue_yt_song(guild_id, text_channel, queue, info, author.mention)
 
     def format_duration(self, duration):
         if not duration:
@@ -276,12 +263,12 @@ class MusicPlayer(commands.Cog):
             FORMAT = "%M:%S"
         elif time_match.group(3):
             FORMAT = "%S"
-        return datetime.strptime(time_str, FORMAT).time()
+        return datetime.datetime.strptime(time_str, FORMAT).time()
 
     def time_to_seconds(self, _time):
         return (_time.hour * 60 + _time.minute) * 60 + _time.second
 
-    async def enqueue_song(self, guild_id, text_channel, queue, info, mention):
+    async def enqueue_yt_song(self, guild_id, text_channel, queue, info, mention):
         if info.get('type'):
             # Through search
             duration = self.time_to_seconds(self.str_to_time(info.get('duration'))) if info.get('duration') else None
@@ -291,9 +278,26 @@ class MusicPlayer(commands.Cog):
 
         meta = { 'type'     : MetaType.YOUTUBE,
                  'title'    : info.get('title'),
+                 'url'      : f"https://youtube.com/watch?v={info.get('id')}",
                  'id'       : info.get('id'),
                  'duration' : duration
                 }
+        queue['meta_list'].append(meta)
+
+        description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
+        embed = discord.Embed(
+                description=description,
+                color=0xcc0000)
+        queue['text_channel'] = text_channel
+        await text_channel.send(embed=embed)
+    
+    async def enqueue_sp_song(self, guild_id, text_channel, queue, info, mention):
+        meta = { 'type'            : MetaType.SPOTIFY,
+                 'title'           : info['name'],
+                 'url'             : info['external_urls']['spotify'],
+                 'duration'        : int(info['duration_ms'] / 1000),
+                 'search_query'    : f"{info['artists'][0]['name']} {info['name']} spotify"
+               }
         queue['meta_list'].append(meta)
 
         description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
@@ -398,6 +402,7 @@ class MusicPlayer(commands.Cog):
             m_time = time.strptime(timestamp, "%M:%S")
             gap = datetime.timedelta(minutes=m_time.tm_min, seconds=m_time.tm_sec).seconds
         except:
+            print(traceback.format_exc())
             failed1 = True
 
         try:
@@ -407,7 +412,10 @@ class MusicPlayer(commands.Cog):
             failed2 = True
         
         if failed1 and failed2:
-            gap = int(timestamp)
+            try:
+                gap = int(timestamp)
+            except ValueError:
+                raise MoosicError(self.translator.translate("er_seekarg", ctx.guild.id))
 
         queue['same_song'] = {'gap': gap, 'before_options': f"-ss {timestamp}"} 
         queue['connection'].stop()
@@ -678,20 +686,29 @@ class MusicPlayer(commands.Cog):
         if not queue['same_song']:
             if song['type'] == MetaType.YOUTUBE:
                 video = await Video.get(song.get('id'))
-                if not song.get("duration"):
-                    queue['current_audio_url'] = video['streamingData']['hlsManifestUrl']
-                else:
+                if song.get("duration"):
                     queue['current_audio_url'] = await self.fetcher.get(video, 251)
+                else:
+                    queue['current_audio_url'] = video['streamingData']['hlsManifestUrl']
+
+                url=f"https://youtube.com/watch?v={song.get('id')}" 
+
             elif song['type'] == MetaType.SPOTIFY:
-                lookup = self.ytdl.extract_info(f"ytsearch:{song['search_query']}", download=False).get("entries")[0]['url']
-                to_play = self.ytdl.sanitize_info(self.ytdl.extract_info(lookup, download=False))
+                lookup = (await VideosSearch(song['search_query'], limit=1).next()).get('result')[0]
+                video = await Video.get(lookup.get('id'))
+                if song.get("duration"):
+                    queue['current_audio_url'] = await self.fetcher.get(video, 251)
+                else:
+                    queue['current_audio_url'] = video['streamingData']['hlsManifestUrl']
+
+                url=song['url']
 
             duration = song['duration']
 
             name = self.translator.translate("play_np", guild_id)
             embed=discord.Embed(
                     title=f"{queue.get('song_index') + 1}. {song.get('title')}", 
-                    url=f"https://youtube.com/watch?v={song.get('id')}", 
+                    url=url, 
                     description=self.format_duration(duration), 
                     color=0xf57900)
             embed.set_author(name=name)
