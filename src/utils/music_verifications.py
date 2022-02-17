@@ -34,7 +34,7 @@ class MusicVerifications:
             raise MoosicError(self.translator.translate("er_conb", ctx.guild.id))
 
     def verify_info_fields(self, info):
-        if not info.get('title') or not info.get('url'):
+        if not info.get('title') or not info.get('id'):
             raise MoosicError(self.translator.translate("er_down", ctx.guild.id))
 
     def verify_same_voice(self, ctx):

@@ -1,18 +1,18 @@
 import discord
+import yt_dlp
 import spotipy
 import asyncio
 import random
 import time
 import re
+import datetime
 import validators
 import traceback
 import os
 
-from datetime import datetime
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord import FFmpegPCMAudio, PCMVolumeTransformer
 from discord.ext import commands
-from youtubesearchpython.__future__ import Video, Playlist, VideosSearch, StreamURLFetcher
 
 from enum import Enum
 from functools import partial
@@ -43,27 +43,16 @@ class MusicPlayer(commands.Cog):
         self.translator = Translator(servers_settings)
         self.verificator = MusicVerifications(self.translator, self.servers_queues)
         self.sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=os.environ["SP_CLIENT"], client_secret=os.environ["SP_SECRET"]))
-        self.fetcher = StreamURLFetcher()
-        self.fetcher._getJS()
+        self.ytdl = yt_dlp.YoutubeDL({'format'         : 'bestaudio/best', 
+                                      'source_address' : '0.0.0.0', 
+                                      'cookiefile'     : 'cookies.txt',
+                                      'noplaylist'     : True, 
+                                      'extract_flat'   : True})
 
-        #self.ytdl = yt_dlp.YoutubeDL({'format'         : 'bestaudio/best', 
-        #                              'source_address' : '0.0.0.0', 
-        #                              'extractaudio'   : True,
-        #                              'cookiefile'     : 'cookies.txt',
-        #                              'noplaylist'     : True, 
-        #                              'extract_flat'   : True,
-        #                              'nocheckcertificate': True,
-        #                              'youtube_include_dash_manifest' : False,
-        #                              'noprogress'     : True,
-        #                              'simulate'       : True,
-        #                              'skip_download'  : True
-        #                              })
-
-        #try:
-        #    self.ytdl.cache.remove()
-        #except youtube_dl.DownloadError as e:
-        #    pass
-
+        try:
+            self.ytdl.cache.remove()
+        except youtube_dl.DownloadError as e:
+            pass
 
     async def play_song_index(self, ctx, queue, song_index):
         modifier = 2 if not queue.get('halt_task') and not queue.get('loop') == LoopState.LOOP_TRACK else 1
@@ -74,14 +63,27 @@ class MusicPlayer(commands.Cog):
 
         queue['song_index'] = url_int
 
+    async def handle_on_playlist_url(self, guild_id, queue, info, author_mention, created_queue, text_channel):
+        if not info.get('webpage_url'):
+            if created_queue:
+                self.ensure_queue_deleted(guild_id)
+            raise MoosicError("er_ytdl")
+        parsed_query = parse_qs(urlparse(info.get('webpage_url')).query)
+        if not parsed_query or not parsed_query.get('v'):
+            if created_queue:
+                self.ensure_queue_deleted(guild_id)
+            raise MoosicError("er_ytdl")
+        info = self.ytdl.extract_info(f"https://youtube.com/watch?v={parsed_query['v'][0]}", download=False)
+        self.verificator.verify_info_fields(info)
+        await self.enqueue_song(guild_id, text_channel, queue, info, author_mention)
+
     def spotify_playlist(self, tracks_uri):
         meta_list = []
         for item in tracks_uri:
-            meta = { 'type'            : MetaType.SPOTIFY,
-                     'title'           : item['track']['name'],
-                     'url'             : item['track']['external_urls']['spotify'],
-                     'duration'        : int(item['track']['duration_ms'] / 1000),
-                     'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']}"
+            meta = { 'type'     : MetaType.SPOTIFY,
+                     'title'    : item['track']['name'],
+                     'url'      : item['track']['external_urls']['spotify'],
+                     'duration' : int(item['track']['duration_ms'] / 1000)
                    }
             meta_list.append(meta)
         return meta_list
@@ -91,8 +93,8 @@ class MusicPlayer(commands.Cog):
         for item in playlist_items:
             meta = { 'type'     : MetaType.YOUTUBE,
                      'title'    : item.get('title'),
-                     'id'       : item.get('id'),
-                     'duration' : self.time_to_seconds(self.str_to_time(item.get('duration')))
+                     'url'      : f"https://youtube.com/watch?v={item.get('id')}",
+                     'duration' : item.get('duration')
                    }
             meta_list.append(meta)
         return meta_list
@@ -100,16 +102,12 @@ class MusicPlayer(commands.Cog):
     async def handle_input(self, guild_id, queue, url, author, created_queue, text_channel):
         if validators.url(url):
             # url handling
-            parsed_url = urlparse(url)
-            if re.match("(m\.|www\.)?(youtu\.be|youtube\.com)", parsed_url.netloc):
-                if parsed_url.path.split("/")[1] == "playlist":
-                    pl = Playlist(url)
-                    while pl.hasMoreVideos:
-                        await pl.getNextVideos()
-                    await self.enqueue_playlist(guild_id, text_channel, queue, self.youtube_playlist(pl.videos), author.mention)
-                else:
-                    vd = await Video.get(url)
-                    await self.enqueue_song(guild_id, text_channel, queue, vd, author.mention)
+            if re.match("(m\.|www\.)?(youtu\.be|youtube\.com)", urlparse(url).netloc):
+                try:
+                    info = self.ytdl.extract_info(url, download=False)
+                except:
+                    print(traceback.format_exc())
+                    raise MoosicError(self.translator.translate("er_url", guild_id))
             elif urlparse(url).netloc == "open.spotify.com":
                 if urlparse(url).path.split("/")[1] == "playlist":
                     playlist_URI = url.split("/")[-1].split("?")[0]
@@ -122,10 +120,18 @@ class MusicPlayer(commands.Cog):
                 return
             else:
                 raise MoosicError("URL não suportada")
+
+            if info.get('_type') and info.get('_type') == 'playlist':
+                await self.enqueue_playlist(guild_id, text_channel, queue, self.youtube_playlist(info['entries']), author.mention)
+            elif info.get('_type') and info.get('_type') == 'url' and info.get('extractor_key') and info.get('extractor_key') == 'YoutubeTab':
+                await self.handle_on_playlist_url(guild_id, queue, info, author.mention, created_queue, text_channel)
+            else:
+                self.verificator.verify_info_fields(info)
+                await self.enqueue_song(guild_id, text_channel, queue, info, author.mention)
         else:
             # search handling
             try:
-                entries = (await VideosSearch(url, limit=5).next()).get("result")
+                entries = self.ytdl.extract_info(f"ytsearch5:{url}", download=False).get('entries')
             except Exception:
                 print(traceback.format_exc())
                 if created_queue:
@@ -167,7 +173,8 @@ class MusicPlayer(commands.Cog):
         songs_str = ""
         i = 1
         for entry in entries:
-            songs_str = songs_str + "[" + str(i) + f"] : {entry.get('title')} <{trans_words.get('by')} {entry.get('channel').get('name')}, {entry.get('duration')}>"
+            formatted_duration = self.format_duration(entry.get('duration'))
+            songs_str = songs_str + "[" + str(i) + f"] : {entry.get('title')} <{trans_words.get('by')} {entry.get('uploader')}, {formatted_duration}>"
             if not i == len(entries):
                 songs_str = songs_str + "\n"
             i += 1
@@ -268,40 +275,19 @@ class MusicPlayer(commands.Cog):
         self.servers_queues[guild_id] = queue
         return queue
 
-    def str_to_time(self, time_str):
-        time_match = re.match('^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$', time_str)
-        if time_match.group(1):
-            FORMAT = "%H:%M:%S"
-        elif time_match.group(2):
-            FORMAT = "%M:%S"
-        elif time_match.group(3):
-            FORMAT = "%S"
-        return datetime.strptime(time_str, FORMAT).time()
-
-    def time_to_seconds(self, _time):
-        return (_time.hour * 60 + _time.minute) * 60 + _time.second
-
     async def enqueue_song(self, guild_id, text_channel, queue, info, mention):
-        if info.get('type'):
-            # Through search
-            duration = self.time_to_seconds(self.str_to_time(info.get('duration'))) if info.get('duration') else None
-        else:
-            # Through URL
-            duration = int(info.get('duration')['secondsText']) if not info.get('isLiveContent') else None
-
-        meta = { 'type'     : MetaType.YOUTUBE,
-                 'title'    : info.get('title'),
-                 'id'       : info.get('id'),
-                 'duration' : duration
-                }
-        queue['meta_list'].append(meta)
-
-        description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
-        embed = discord.Embed(
-                description=description,
-                color=0xcc0000)
-        queue['text_channel'] = text_channel
-        await text_channel.send(embed=embed)
+            meta = { 'type'     : MetaType.YOUTUBE,
+                     'title'    : info.get('title'),
+                     'url'      : f"https://youtube.com/watch?v={info.get('id')}",
+                     'duration' : info.get('duration')
+                    }
+            queue['meta_list'].append(meta)
+            description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
+            embed = discord.Embed(
+                    description=description,
+                    color=0xcc0000)
+            queue['text_channel'] = text_channel
+            await text_channel.send(embed=embed)
     
     async def enqueue_playlist(self, guild_id, text_channel, queue, playlist, mention):
         queue['meta_list'].extend(playlist)
@@ -333,12 +319,11 @@ class MusicPlayer(commands.Cog):
             how_many = len(queue['meta_list']) - queue['song_index']
 
         queue['song_index'] += how_many if queue['loop'] == LoopState.LOOP_TRACK else how_many - 1
-
         description = self.translator.translate("skip_succ", ctx.guild.id).format(how_many=how_many)
         embed = discord.Embed(
                 description=description,
                 color=0xcc0000)
-        asyncio.create_task(ctx.send(embed=embed))
+        await ctx.send(embed=embed)
 
         queue['connection'].stop()
 
@@ -424,10 +409,9 @@ class MusicPlayer(commands.Cog):
             raise MoosicError(self.translator.translate("er_npdat", ctx.guild.id))
 
         now = time.time()
-        song = queue['meta_list'][queue['song_index']]
         time_paused = now - queue['paused_time'] if queue['paused_time'] else 0
         elapsed = int((now - queue['elapsed_time']) - time_paused)
-        duration = song.get('duration')
+        duration = queue['meta_list'][queue['song_index']]['duration']
             
         if elapsed < 60:
             formatted_elapsed = (time.strftime("%-Ss", time.gmtime(elapsed)))
@@ -436,14 +420,18 @@ class MusicPlayer(commands.Cog):
         else:
             formatted_elapsed = (time.strftime("%-Hh %-Mm %-Ss", time.gmtime(elapsed)))
 
-        if duration < 60:
-            formatted_duration = (time.strftime("%-Ss", time.gmtime(duration)))
-        elif duration < 3600:
-            formatted_duration = (time.strftime("%-Mm %-Ss", time.gmtime(duration)))
-        else:
-            formatted_duration = (time.strftime("%-Hh %-Mm %-Ss", time.gmtime(duration)))
+        live = True if not duration else False
+        if not live:
+            if duration < 60:
+                formatted_duration = (time.strftime("%-Ss", time.gmtime(duration)))
+            elif duration < 3600:
+                formatted_duration = (time.strftime("%-Mm %-Ss", time.gmtime(duration)))
+            else:
+                formatted_duration = (time.strftime("%-Hh %-Mm %-Ss", time.gmtime(duration)))
 
-        if not song.get("duration_str") == "0":
+        song = queue['meta_list'][queue['song_index']]
+
+        if not live:
             completion_bar = int((elapsed/duration) * 20)
             complement_bar = 20 - completion_bar
 
@@ -526,9 +514,10 @@ class MusicPlayer(commands.Cog):
             live = True if not entry.get('duration') else False
 
             if not live:
-                duration = entry.get('duration')
                 if it == song_index + 1 and page == 0:
-                    duration = duration - elapsed
+                    duration = entry['duration'] - elapsed
+                else:
+                    duration = entry['duration']
 
                 if duration >= 3600:
                     formatted_duration = time.strftime("%H:%M:%S", time.gmtime(int(duration)))
@@ -649,16 +638,13 @@ class MusicPlayer(commands.Cog):
             queue['song_index'] = 0
             await self.play_songs(ctx.guild.id)
 
-    async def get_video(self, id):
-        return 
-
     async def play_songs(self, guild_id):
         queue = self.servers_queues.get(guild_id)
         text_channel = queue.get('text_channel')
         connection = queue.get('connection')
 
         if not queue['same_song'] and queue.get('now_playing_message'):
-            asyncio.create_task(queue['now_playing_message'].delete())
+            await queue['now_playing_message'].delete()
             queue['now_playing_message'] = None
 
         if not queue['same_song']:
@@ -676,26 +662,45 @@ class MusicPlayer(commands.Cog):
         options = Filter.FFMPEG_OPTIONS.copy()
 
         if not queue['same_song']:
-            if song['type'] == MetaType.YOUTUBE:
-                video = await Video.get(song.get('id'))
-                if not song.get("duration"):
-                    queue['current_audio_url'] = video['streamingData']['hlsManifestUrl']
+            try:
+                self.ytdl.cache.remove()
+            except youtube_dl.DownloadError as e:
+                pass
+
+            try:
+                if song['type'] == MetaType.YOUTUBE:
+                    to_play = self.ytdl.sanitize_info(self.ytdl.extract_info(song.get("url"), download=False))
                 else:
-                    queue['current_audio_url'] = await self.fetcher.get(video, 251)
-            elif song['type'] == MetaType.SPOTIFY:
-                lookup = self.ytdl.extract_info(f"ytsearch:{song['search_query']}", download=False).get("entries")[0]['url']
-                to_play = self.ytdl.sanitize_info(self.ytdl.extract_info(lookup, download=False))
+                    lookup = self.ytdl.extract_info(f"ytsearch:{}", download=False).get("entries")[0]['url']
+                    self.ytdl.sanitize_info(self.ytdl.extract_info(lookup, download=False))
+            except yt_dlp.utils.DownloadError:
+                await text_channel.send(self.translator.translate("er_playdl", guild_id).format(title=song['title']))
+
+                await self.loop_handler(connection.loop, guild_id, queue, None)
+                return
 
             duration = song['duration']
+            live = True if not duration else False
+            if not live:
+                duration_label = self.translator.translate("play_duration", guild_id)
+                if duration >= 3600:
+                    formatted_d = time.strftime("%H:%M:%S", time.gmtime(int(duration)))
+                else:
+                    formatted_d = time.strftime("%M:%S", time.gmtime(int(duration)))
+                formatted_duration = f"{duration_label}: {formatted_d}"
+            else:
+                formatted_duration = "LIVE"
+
+            queue['current_audio_url'] = to_play.get('url')
 
             name = self.translator.translate("play_np", guild_id)
             embed=discord.Embed(
                     title=f"{queue.get('song_index') + 1}. {song.get('title')}", 
-                    url=f"https://youtube.com/watch?v={song.get('id')}", 
-                    description=self.format_duration(duration), 
+                    url=song.get('url'), 
+                    description=formatted_duration, 
                     color=0xf57900)
             embed.set_author(name=name)
-            embed.set_thumbnail(url=(video).get('thumbnails')[-1].get('url'))
+            embed.set_thumbnail(url=to_play.get('thumbnail'))
             queue['now_playing_message'] = await text_channel.send(embed=embed)
         else:
             options['before_options'] = f"{options['before_options']} {queue['same_song']['before_options']}"
