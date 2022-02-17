@@ -89,6 +89,13 @@ class MusicPlayer(commands.Cog):
                     while pl.hasMoreVideos:
                         await pl.getNextVideos()
                     await self.enqueue_playlist(guild_id, text_channel, queue, self.youtube_playlist(pl.videos), author.mention)
+                elif parsed_url.path.split("/")[1] == "shorts":
+                    try:
+                        video_id = parsed_url.path.split("/")[2] 
+                        vd = await Video.get(video_id)
+                    except:
+                        raise MoosicError(self.translator.translate("er_himalformed", guild_id))
+                    await self.enqueue_yt_song(guild_id, text_channel, queue, vd, author.mention)
                 else:
                     try:
                         vd = await Video.get(url)
