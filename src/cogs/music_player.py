@@ -62,7 +62,7 @@ class MusicPlayer(commands.Cog):
                      'title'           : item['track']['name'],
                      'url'             : item['track']['external_urls']['spotify'],
                      'duration'        : int(item['track']['duration_ms'] / 1000),
-                     'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']} spotify"
+                     'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']} views"
                    }
             meta_list.append(meta)
         return meta_list
@@ -296,7 +296,7 @@ class MusicPlayer(commands.Cog):
                  'title'           : info['name'],
                  'url'             : info['external_urls']['spotify'],
                  'duration'        : int(info['duration_ms'] / 1000),
-                 'search_query'    : f"{info['artists'][0]['name']} {info['name']} spotify"
+                 'search_query'    : f"{info['artists'][0]['name']} {info['name']} views"
                }
         queue['meta_list'].append(meta)
 
