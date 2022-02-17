@@ -139,7 +139,7 @@ class MusicPlayer(commands.Cog):
                 await msg.delete(delay=10)
                 return 1
                 
-            self.verificator.verify_info_fields(info)
+            self.verificator.verify_info_fields(info, ctx.guild.id)
             await self.enqueue_yt_song(guild_id, text_channel, queue, info, author.mention)
 
     def format_duration(self, duration):
@@ -322,7 +322,7 @@ class MusicPlayer(commands.Cog):
         """Pula um determinado número de músicas na fila"""
         self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
-        self.verificator.verify_is_playing(queue)
+        self.verificator.verify_is_playing(queue, ctx.guild.id)
         if how_many:
             try:
                 how_many = int(how_many)
@@ -351,7 +351,7 @@ class MusicPlayer(commands.Cog):
         """Pausa a música que está tocando"""
         self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
-        self.verificator.verify_is_playing(queue)
+        self.verificator.verify_is_playing(queue, ctx.guild.id)
 
         if queue.get('paused_time'):
             raise MoosicError(self.translator.translate("er_paused", ctx.guild.id))
@@ -365,7 +365,7 @@ class MusicPlayer(commands.Cog):
         """Resume a música que estava tocando"""
         self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
-        self.verificator.verify_is_playing(queue)
+        self.verificator.verify_is_playing(queue, ctx.guild.id)
 
         if not queue.get('paused_time'):
             raise MoosicError(self.translator.translate("er_nopause", ctx.guild.id))
@@ -426,7 +426,7 @@ class MusicPlayer(commands.Cog):
         """Disponibiliza informações da música que está tocando"""
         self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
-        self.verificator.verify_is_playing(queue)
+        self.verificator.verify_is_playing(queue, ctx.guild.id)
 
         if not queue['elapsed_time']:
             raise MoosicError(self.translator.translate("er_npdat", ctx.guild.id))

@@ -17,9 +17,9 @@ class MusicVerifications:
         self.verify_registry(ctx)
         self.verify_same_voice(ctx)
 
-    def verify_is_playing(self, queue):
+    def verify_is_playing(self, queue, guild_id):
         if queue['song_index'] >= len(queue['meta_list']):
-            raise MoosicError(self.translator.translate("er_nosong", ctx.guild.id))
+            raise MoosicError(self.translator.translate("er_nosong", guild_id))
 
     def verify_user_voice(self, ctx):
         if not ctx.author.voice:
@@ -33,9 +33,9 @@ class MusicVerifications:
         if not queue.get('connection'):
             raise MoosicError(self.translator.translate("er_conb", ctx.guild.id))
 
-    def verify_info_fields(self, info):
+    def verify_info_fields(self, info, guild_id):
         if not info.get('title') or not info.get('id'):
-            raise MoosicError(self.translator.translate("er_down", ctx.guild.id))
+            raise MoosicError(self.translator.translate("er_down", guild_id))
 
     def verify_same_voice(self, ctx):
         if ctx.author.voice and ctx.voice_client and ctx.author.voice.channel != ctx.voice_client.channel:
