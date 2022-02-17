@@ -112,7 +112,7 @@ class MusicPlayer(commands.Cog):
         else:
             # search handling
             try:
-                entries = (await VideosSearch(url, limit=5).next()).get("result")
+                entries = (await VideosSearch(url, limit=10).next()).get("result")
             except Exception:
                 print(traceback.format_exc())
                 if created_queue:
@@ -139,7 +139,7 @@ class MusicPlayer(commands.Cog):
                 await msg.delete(delay=10)
                 return 1
                 
-            self.verificator.verify_info_fields(info, ctx.guild.id)
+            self.verificator.verify_info_fields(info, guild_id)
             await self.enqueue_yt_song(guild_id, text_channel, queue, info, author.mention)
 
     def format_duration(self, duration):
