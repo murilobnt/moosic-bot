@@ -1,26 +1,19 @@
 import discord
-import spotipy
 import asyncio
 import random
 import time
-import re
-import validators
 import traceback
 import os
 
 import datetime
-from spotipy.oauth2 import SpotifyClientCredentials
 from discord import FFmpegPCMAudio, PCMVolumeTransformer
 from discord.ext import commands
-from youtubesearchpython.__future__ import Video, Playlist, VideosSearch, StreamURLFetcher
 
 from enum import Enum
 from functools import partial
-from urllib.parse import urlparse, parse_qs
 
 from src.utils.music_verifications import MusicVerifications
 from src.utils.moosic_error import MoosicError
-from src.database.async_database import create_get_guild_record
 from src.language.translator import Translator
 
 class Filter:
@@ -46,153 +39,8 @@ class MusicPlayer(commands.Cog):
         self.fetcher = StreamURLFetcher()
         self.fetcher._getJS()
 
-    async def play_song_index(self, ctx, queue, song_index):
-        modifier = 2 if not queue.get('halt_task') and not queue.get('loop') == LoopState.LOOP_TRACK else 1
-        url_int = song_index - modifier
-
-        if url_int < 1 - modifier or url_int > len(queue['meta_list']) - modifier:
-            raise MoosicError(self.translator.translate("er_index", ctx.guild.id))
-
-        queue['song_index'] = url_int
-
-    def spotify_playlist(self, tracks_uri):
-        meta_list = []
-        for item in tracks_uri:
-            meta = { 'type'            : MetaType.SPOTIFY,
-                     'title'           : item['track']['name'],
-                     'url'             : item['track']['external_urls']['spotify'],
-                     'duration'        : int(item['track']['duration_ms'] / 1000),
-                     'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']} views"
-                   }
-            meta_list.append(meta)
-        return meta_list
-
-    def youtube_playlist(self, playlist_items):
-        meta_list = []
-        for item in playlist_items:
-            meta = { 'type'     : MetaType.YOUTUBE,
-                     'title'    : item.get('title'),
-                     'url'      : f"https://youtube.com/watch?v={item.get('id')}",
-                     'id'       : item.get('id'),
-                     'duration' : self.time_to_seconds(self.str_to_time(item.get('duration')))
-                   }
-            meta_list.append(meta)
-        return meta_list
-
-    async def handle_input(self, guild_id, queue, url, author, created_queue, text_channel):
-        if validators.url(url):
-            # url handling
-            parsed_url = urlparse(url)
-            if re.match("(m\.|www\.)?(youtu\.be|youtube\.com)", parsed_url.netloc):
-                if parsed_url.path.split("/")[1] == "playlist":
-                    pl = Playlist(url)
-                    while pl.hasMoreVideos:
-                        await pl.getNextVideos()
-                    await self.enqueue_playlist(guild_id, text_channel, queue, self.youtube_playlist(pl.videos), author.mention)
-                elif parsed_url.path.split("/")[1] == "shorts":
-                    try:
-                        video_id = parsed_url.path.split("/")[2] 
-                        vd = await Video.get(video_id)
-                    except:
-                        raise MoosicError(self.translator.translate("er_himalformed", guild_id))
-                    await self.enqueue_yt_song(guild_id, text_channel, queue, vd, author.mention)
-                else:
-                    try:
-                        vd = await Video.get(url)
-                    except:
-                        raise MoosicError(self.translator.translate("er_himalformed", guild_id))
-                    await self.enqueue_yt_song(guild_id, text_channel, queue, vd, author.mention)
-            elif urlparse(url).netloc == "open.spotify.com":
-                if urlparse(url).path.split("/")[1] == "playlist":
-                    playlist_URI = url.split("/")[-1].split("?")[0]
-                    tracks_uri = self.sp.playlist_tracks(playlist_URI)["items"]
-                    await self.enqueue_playlist(guild_id, text_channel, queue, self.spotify_playlist(tracks_uri), author.mention)
-                elif urlparse(url).path.split("/")[1] == "track":
-                    track_URI = url.split("/")[-1].split("?")[0]
-                    track = self.sp.track(track_URI)
-                    await self.enqueue_sp_song(guild_id, text_channel, queue, track, author.mention)
-                else:
-                    raise MoosicError(self.translator.translate("er_hispotifyuri", guild_id))
-                return
-            else:
-                raise MoosicError(self.translator.translate("er_hidomain", guild_id))
-        else:
-            # search handling
-            try:
-                entries = (await VideosSearch(url, limit=10).next()).get("result")
-            except Exception:
-                print(traceback.format_exc())
-                if created_queue:
-                    self.ensure_queue_deleted(ctx.guild.id)
-                raise MoosicError(self.translator.translate("er_url", guild_id))
-
-            trans_words = {'by' : self.translator.translate("play_by", guild_id)}
-            choice_picker = await text_channel.send(self.translator.translate("play_buildt", guild_id).format(songs_str=self.build_choose_text(entries, trans_words)))
-            try:
-                response = await self.bot.wait_for('message', timeout=30, check=lambda message: message.author == author and message.channel == text_channel)
-            except asyncio.TimeoutError:
-                await choice_picker.delete()
-                raise MoosicError(self.translator.translate("er_shtimeout", guild_id))
-            try:
-                choice = int(response.content)
-                if choice < 1 or choice > len(entries):
-                    await choice_picker.delete()
-                    raise MoosicError(self.translator.translate("er_shoutlen", guild_id))
-                info = entries[choice - 1]
-                await choice_picker.delete()
-            except ValueError:
-                await choice_picker.delete()
-                msg = await text_channel.send(self.translator.translate("play_shcancel", guild_id))
-                await msg.delete(delay=10)
-                return 1
-                
-            self.verificator.verify_info_fields(info, guild_id)
-            await self.enqueue_yt_song(guild_id, text_channel, queue, info, author.mention)
-
-    def format_duration(self, duration):
-        if not duration:
-            return "LIVE"
-        if duration >= 3600:
-            return time.strftime("%H:%M:%S", time.gmtime(int(duration)))
-        else:
-            return time.strftime("%M:%S", time.gmtime(int(duration)))
-
-    def build_choose_text(self, entries, trans_words):
-        songs_str = ""
-        i = 1
-        for entry in entries:
-            songs_str = songs_str + "[" + str(i) + f"] : {entry.get('title')} <{trans_words.get('by')} {entry.get('channel').get('name')}, {entry.get('duration')}>"
-            if not i == len(entries):
-                songs_str = songs_str + "\n"
-            i += 1
-
-        return songs_str
-
-    async def connect_and_play(self, ctx, queue):
-        try:
-            queue['connection'] = await ctx.author.voice.channel.connect()
-            await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
-            await self.play_songs(ctx.guild.id)
-        except (asyncio.TimeoutError, discord.ClientException) as e:
-            self.ensure_queue_deleted(ctx.guild.id)
-            raise MoosicError(self.translator.translate("er_conc", ctx.guild.id))
-
-    def cancel_halt_task(self, queue):
-        if queue.get('halt_task'):
-            if not queue['halt_task'].done():
-                queue['halt_task'].cancel()
-
-            queue['halt_task'] = None
-
-    def cancel_alone_task(self, queue):
-        if queue.get('alone_task'):
-            if not queue['alone_task'].done():
-                queue['alone_task'].cancel()
-
-            queue['alone_task'] = None
-
     @commands.command(aliases=['p', 't', 'tocar'], description="ldesc_play", pass_context=True)
-    async def play(self, ctx, *, url : str):
+    async def play(self, ctx, *, input : str):
         """Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz"""
         self.verificator.verify_user_voice(ctx)
 
@@ -211,11 +59,25 @@ class MusicPlayer(commands.Cog):
 
         if not queue:
             created_queue = True
-            queue = self.create_queue(ctx.guild.id, ctx.message.channel)
+            queue = {
+                        'text_channel'        : ctx.message.channel,
+                        'connection'          : None,
+                        'meta_list'           : [],
+                        'song_index'          : 0,
+                        'now_playing_message' : None,
+                        'same_song'           : None,
+                        'elapsed_time'        : None,
+                        'paused_time'         : None,
+                        'halt_task'           : None,
+                        'alone_task'          : None,
+                        'current_audio_url'   : None,
+                        'loop'                : LoopState.NOT_ON_LOOP
+                    }
+            self.servers_queues[guild_id] = queue
 
         song_index = None
         try:
-            song_index = int(url)
+            song_index = int(input)
         except ValueError:
             pass
         
@@ -223,106 +85,53 @@ class MusicPlayer(commands.Cog):
             if song_index:
                 self.verificator.verify_connection(ctx, queue)
                 self.verificator.verify_no_songs(ctx, queue)
-                await self.play_song_index(ctx, queue, song_index)
+                play_song_index(queue, song_index)
                 if not queue.get('halt_task'):
                     queue['connection'].stop()
             else:
-                result = await self.handle_input(ctx.guild.id, queue, url, ctx.author, created_queue, ctx.message.channel)
-                if result:
-                    if created_queue:
-                        self.servers_queues.pop(ctx.guild.id)
-                    return
+                async def send_and_choose(choose_text):
+                    choice_picker = await ctx.message.channel.send(choose_text)
+                    try:
+                        response = await self.bot.wait_for('message', \
+                                                           timeout=30, \
+                        check=lambda message: message.author == author and \
+                        message.channel == ctx.message.channel)
+                    except asyncio.TimeoutError:
+                        await choice_picker.delete()
+                        raise MoosicError(self.translator.translate("er_shtimeout", guild_id))
+
+                input_to_meta(input, queue.get('meta_list'), self.sp, send_and_choose)
         except:
             if created_queue:
-                self.servers_queues.pop(ctx.guild.id)
+                self.ensure_queue_deleted(ctx.guild.id)
             raise
 
         if created_queue:
             await self.connect_and_play(ctx, queue)
         elif queue.get('halt_task'):
-            self.cancel_halt_task(queue)
+            cancel_task(queue['halt_task'])
             await self.play_songs(ctx.guild.id)
 
-    def create_queue(self, guild_id, text_channel):
-        queue = {
-                'text_channel'        : text_channel,
-                'connection'          : None,
-                'meta_list'           : [],
-                'song_index'          : 0,
-                'now_playing_message' : None,
-                'same_song'           : None,
-                'elapsed_time'        : None,
-                'paused_time'         : None,
-                'halt_task'           : None,
-                'alone_task'          : None,
-                'current_audio_url'   : None,
-                'loop'                : LoopState.NOT_ON_LOOP
-                 }
-
-        self.servers_queues[guild_id] = queue
-        return queue
-
-    def str_to_time(self, time_str):
-        time_match = re.match('^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$', time_str)
-        if time_match.group(1):
-            FORMAT = "%H:%M:%S"
-        elif time_match.group(2):
-            FORMAT = "%M:%S"
-        elif time_match.group(3):
-            FORMAT = "%S"
-        return datetime.datetime.strptime(time_str, FORMAT).time()
-
-    def time_to_seconds(self, _time):
-        return (_time.hour * 60 + _time.minute) * 60 + _time.second
-
-    async def enqueue_yt_song(self, guild_id, text_channel, queue, info, mention):
-        if info.get('type'):
-            # Through search
-            duration = self.time_to_seconds(self.str_to_time(info.get('duration'))) if info.get('duration') else None
-        else:
-            # Through URL
-            duration = int(info.get('duration')['secondsText']) if not info.get('isLiveContent') else None
-
-        meta = { 'type'     : MetaType.YOUTUBE,
-                 'title'    : info.get('title'),
-                 'url'      : f"https://youtube.com/watch?v={info.get('id')}",
-                 'id'       : info.get('id'),
-                 'duration' : duration
-                }
-        queue['meta_list'].append(meta)
-
-        description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
-        embed = discord.Embed(
-                description=description,
-                color=0xcc0000)
-        queue['text_channel'] = text_channel
-        await text_channel.send(embed=embed)
+        # description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
+        # embed = discord.Embed(
+        #         description=description,
+        #         color=0xcc0000)
+        # queue['text_channel'] = text_channel
+        # await text_channel.send(embed=embed)
     
-    async def enqueue_sp_song(self, guild_id, text_channel, queue, info, mention):
-        meta = { 'type'            : MetaType.SPOTIFY,
-                 'title'           : info['name'],
-                 'url'             : info['external_urls']['spotify'],
-                 'duration'        : int(info['duration_ms'] / 1000),
-                 'search_query'    : f"{info['artists'][0]['name']} {info['name']} views"
-               }
-        queue['meta_list'].append(meta)
-
-        description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
-        embed = discord.Embed(
-                description=description,
-                color=0xcc0000)
-        queue['text_channel'] = text_channel
-        await text_channel.send(embed=embed)
+        # description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
+        # embed = discord.Embed(
+        #         description=description,
+        #         color=0xcc0000)
+        # queue['text_channel'] = text_channel
+        # await text_channel.send(embed=embed)
     
-    async def enqueue_playlist(self, guild_id, text_channel, queue, playlist, mention):
-        queue['meta_list'].extend(playlist)
-
-        description = self.translator.translate("pl_add", guild_id).format(pl_len=len(playlist), mention=mention)
-        embed = discord.Embed(
-                description=description,
-                color=0xcc0000)
-        queue['text_channel'] = text_channel
-        await text_channel.send(embed=embed)
+        # description = self.translator.translate("pl_add", guild_id).format(pl_len=len(playlist), mention=mention)
+        # embed = discord.Embed(
+        #         description=description,
+        #         color=0xcc0000)
+        # queue['text_channel'] = text_channel
+        # await text_channel.send(embed=embed)
 
     @commands.command(aliases=['pular'], description="ldesc_skip", pass_context=True) 
     async def skip(self, ctx, *, how_many : int = None):
@@ -664,9 +473,6 @@ class MusicPlayer(commands.Cog):
             queue['song_index'] = 0
             await self.play_songs(ctx.guild.id)
 
-    async def get_video(self, id):
-        return 
-
     async def play_songs(self, guild_id):
         queue = self.servers_queues.get(guild_id)
         text_channel = queue.get('text_channel')
@@ -734,11 +540,11 @@ class MusicPlayer(commands.Cog):
 
     async def inactive(self, guild_id, queue):
         await self.halt(guild_id, queue, 180, self.translator.translate("inactive_notice", guild_id))
-        self.cancel_alone_task(queue)
+        cancel_task(queue['alone_task'])
 
     async def alone(self, guild_id, queue):
         await self.halt(guild_id, queue, 60, self.translator.translate("alone_notice", guild_id))
-        self.cancel_halt_task(queue)
+        cancel_task(queue['halt_task'])
 
     async def halt(self, guild_id, queue, halt_time, reason):
         await asyncio.sleep(halt_time)
