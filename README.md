@@ -73,7 +73,7 @@ In case you had trouble setting up the database, you might want to execute,
 instead:
 
 ```
-python devmoosic.py
+python moosic.py --no-database
 ```
 
 **However, the language of the bot will only be available in portuguese.**
