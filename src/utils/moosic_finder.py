@@ -127,14 +127,14 @@ async def input_to_meta(input, guild_meta_list, sp, send_and_choose):
                 vd = await Video.get(input)
                 guild_meta_list.append(vd)
             except:
-                raise MoosicError("TODO: ERRO") #er_himalformed
+                raise MoosicError("er_himalformed") #er_himalformed
         case MoosicSearchType.YOUTUBE_SHORTS:
             try:
                 video_id = parsed_url.path.split("/")[2]
                 vd = await Video.get(video_id)
                 guild_meta_list.append(vd)
             except:
-                raise MoosicError("TODO: ERRO") #er_himalformed
+                raise MoosicError("er_himalformed") #er_himalformed
             pass
         case MoosicSearchType.YOUTUBE_PLAYLIST:
             pl = fetch_yt_playlist(input)
@@ -153,15 +153,13 @@ async def input_to_meta(input, guild_meta_list, sp, send_and_choose):
                 interactive_text = await send_and_choose(build_choose_text(entries))
                 choice = int(interactive_text.response.content)
                 if choice < 1 or choice > len(entries):
-                    raise MoosicError("TODO: ERRO") #er_shoutlen
+                    raise MoosicError("er_shoutlen") #er_shoutlen
                     await interactive_text.sent_text.delete()
                 info = entries[choice - 1]
                 await interactive_text.sent_text.delete()
             except:
-                raise MoosicError("TODO: ERRO") #er_url
-                #raise MoosicError(self.translator.translate("er_url", guild_id))
-                #print(traceback.format_exc())
-                #if created_queue:
-                #    self.ensure_queue_deleted(ctx.guild.id)
+                raise MoosicError("er_url") #er_url
         case _:
-            raise MoosicError("TODO: ERRO") #er_himalformed or unknown
+            raise MoosicError("er_himalformed") #er_himalformed or unknown
+
+    return input_type

@@ -4,9 +4,12 @@ import random
 import time
 import traceback
 import os
-
+import spotipy
 import datetime
+
+from spotipy.oauth2 import SpotifyClientCredentials
 from discord import FFmpegPCMAudio, PCMVolumeTransformer
+from youtubesearchpython.__future__ import Video, Playlist, VideosSearch, StreamURLFetcher
 from discord.ext import commands
 
 from enum import Enum
@@ -85,9 +88,12 @@ class MusicPlayer(commands.Cog):
             if song_index:
                 self.verificator.verify_connection(ctx, queue)
                 self.verificator.verify_no_songs(ctx, queue)
-                play_song_index(queue, song_index)
-                if not queue.get('halt_task'):
-                    queue['connection'].stop()
+                try:
+                    play_song_index(queue, song_index)
+                    if not queue.get('halt_task'):
+                        queue['connection'].stop()
+                except MoosicError as e:
+                    raise MoosicError(self.translator.translate("er_index"), ctx.guild.id)
             else:
                 async def send_and_choose(choose_text):
                     choice_picker = await ctx.message.channel.send(choose_text)
@@ -100,38 +106,25 @@ class MusicPlayer(commands.Cog):
                         await choice_picker.delete()
                         raise MoosicError(self.translator.translate("er_shtimeout", guild_id))
 
-                input_to_meta(input, queue.get('meta_list'), self.sp, send_and_choose)
+                try:
+                    type = input_to_meta(input, queue.get('meta_list'), self.sp, send_and_choose)
+                except MoosicError as e:
+                    raise MoosicError(self.translator.translate(str(e), guild_id)) # This can't be a good practice!
+
         except:
             if created_queue:
                 self.ensure_queue_deleted(ctx.guild.id)
             raise
 
         if created_queue:
-            await self.connect_and_play(ctx, queue)
+            try:
+                await connect_and_play(ctx, queue, self.play_songs)
+            except:
+                self.ensure_queue_deleted(ctx.guild.id)
+                raise MoosicError(self.translator.translate("er_conc"), ctx.guild.id)
         elif queue.get('halt_task'):
             cancel_task(queue['halt_task'])
             await self.play_songs(ctx.guild.id)
-
-        # description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
-        # embed = discord.Embed(
-        #         description=description,
-        #         color=0xcc0000)
-        # queue['text_channel'] = text_channel
-        # await text_channel.send(embed=embed)
-    
-        # description = self.translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=meta.get('title'), url=meta.get('url'), mention=mention)
-        # embed = discord.Embed(
-        #         description=description,
-        #         color=0xcc0000)
-        # queue['text_channel'] = text_channel
-        # await text_channel.send(embed=embed)
-    
-        # description = self.translator.translate("pl_add", guild_id).format(pl_len=len(playlist), mention=mention)
-        # embed = discord.Embed(
-        #         description=description,
-        #         color=0xcc0000)
-        # queue['text_channel'] = text_channel
-        # await text_channel.send(embed=embed)
 
     @commands.command(aliases=['pular'], description="ldesc_skip", pass_context=True) 
     async def skip(self, ctx, *, how_many : int = None):
@@ -310,7 +303,7 @@ class MusicPlayer(commands.Cog):
         else:
             in_loop = self.translator.translate(il_index, ctx.guild.id) 
 
-        msg = await ctx.send(self.build_page(ctx.guild.id, self.build_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
+        msg = await ctx.send(self.build_q_page(ctx.guild.id, self.build_q_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
         if last_page > 0:
             await msg.add_reaction("◀️")
             await msg.add_reaction("▶️")
@@ -327,64 +320,19 @@ class MusicPlayer(commands.Cog):
                     if page > last_page:
                         page = 0
 
-                    await msg.edit(content=self.build_page(ctx.guild.id, self.build_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
+                    await msg.edit(content=self.build_q_page(ctx.guild.id, self.build_q_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
                     await msg.remove_reaction(reaction, user)
                 elif str(reaction.emoji) == "◀️":
                     page -= 1
                     if page < 0:
                         page = last_page
-                    await msg.edit(content=self.build_page(ctx.guild.id, self.build_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
+                    await msg.edit(content=self.build_q_page(ctx.guild.id, self.build_q_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
                     await msg.remove_reaction(reaction, user)
                 else:
                     await msg.remove_reaction(reaction, user)
             except asyncio.TimeoutError:
                 await msg.clear_reactions()
                 break
-
-    def build_text(self, guild_id, meta_list, elapsed, song_index, page):
-        songs = ""
-        it = 1 + (page * 10)
-        index = it
-
-        for entry in meta_list[index - 1 : (index - 1) + 10]:
-            live = True if not entry.get('duration') else False
-
-            if not live:
-                duration = entry.get('duration')
-                if it == song_index + 1 and page == 0:
-                    duration = duration - elapsed
-
-                if duration >= 3600:
-                    formatted_duration = time.strftime("%H:%M:%S", time.gmtime(int(duration)))
-                else:
-                    formatted_duration = time.strftime("%M:%S", time.gmtime(int(duration)))
-            else:
-                formatted_duration = "LIVE"
-
-            if it == song_index + 1:
-                np = self.translator.translate("q_np", guild_id)
-                if not live:
-                    remaining = self.translator.translate("q_remaining", guild_id)
-                    songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} {remaining} l> {np}"
-                else:
-                    songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} l> {np}"
-            else:
-                    songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} l>"
-
-            if it == len(meta_list):
-                break
-
-            if it == index + 9:
-                songs = songs + "\n..."
-            else:
-                songs = songs + "\n"
-
-            it = it + 1
-
-        return songs
-
-    def build_page(self, guild_id, songs, in_loop, page, last_page):
-        return self.translator.translate("q_page", guild_id).format(page_plus=page + 1, last_page_plus = last_page + 1, songs=songs, in_loop = in_loop)
 
     @commands.command(aliases=['dc', 'quit'], description="ldesc_disconnect", pass_context=True)
     async def disconnect(self, ctx):
