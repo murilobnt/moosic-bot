@@ -156,7 +156,7 @@ class MoosicFinder:
                 try:
                     video_id = parsed_url.path.split("/")[2]
                     vd = await Video.get(video_id)
-                    queue.get('meta_list').append(vd)
+                    queue.get('meta_list').append(MoosicFinder.gen_youtube_song(vd))
                 except:
                     raise MoosicError("er_himalformed") #er_himalformed
                 pass
@@ -174,7 +174,7 @@ class MoosicFinder:
                 playlist_URI = input.split("/")[-1].split("?")[0]
                 tracks_uri = sp.playlist_tracks(playlist_URI)["items"]
                 pl = MoosicFinder.gen_spotify_playlist(tracks_uri)
-                queue.get('meta_list').append(pl)
+                queue.get('meta_list').extend(pl)
                 pl_len = len(pl)
                 playlist = True
             case MoosicSearchType.SEARCH_STRING:
