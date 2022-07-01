@@ -69,7 +69,8 @@ class MusicPlayer(commands.Cog):
                         'halt_task'           : None,
                         'alone_task'          : None,
                         'current_audio_url'   : None,
-                        'loop'                : LoopState.NOT_ON_LOOP
+                        'loop'                : LoopState.NOT_ON_LOOP,
+                        'stop_loop'           : False
                     }
             self.servers_queues[ctx.guild.id] = queue
 
@@ -185,8 +186,10 @@ class MusicPlayer(commands.Cog):
         self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
         queue['meta_list'] = random.sample(queue.get('meta_list'), k=len(queue.get('meta_list')))
-        queue['song_index'] = -1
+        queue['song_index'] = 0
+        queue['stop_loop'] = True
         queue['connection'].stop()
+        await self.play_songs(ctx.guild.id)
 
         await ctx.message.add_reaction("\U00002705")
 
@@ -500,6 +503,10 @@ class MusicPlayer(commands.Cog):
         await no_music_message.delete(delay=30)
 
     def loop_handler(self, loop, guild_id, queue, e):
+        if queue['stop_loop']:
+            queue['stop_loop'] = False
+            return
+
         queue['song_index'] += 1 if not queue['same_song'] and not queue['loop'] == LoopState.LOOP_TRACK else 0
 
         if queue['loop'] == LoopState.LOOP_QUEUE and queue['song_index'] == len(queue['meta_list']):
