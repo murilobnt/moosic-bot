@@ -13,7 +13,8 @@ and seeking.
 * Basic information about reproduction queue with now playing, and queue.
 * Supports three languages: Portuguese, English and Spanish.
 
-This project uses [discord.py](https://github.com/Rapptz/discord.py) and 
+This project uses [discord.py](https://github.com/Rapptz/discord.py),
+[spotipy](https://spotipy.readthedocs.io/en/master/), and 
 [youtube-search-python](https://github.com/alexmercerind/youtube-search-python).
 
 ### Requires
