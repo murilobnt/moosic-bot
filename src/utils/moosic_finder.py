@@ -1,27 +1,15 @@
 import spotipy
+import discord
 import datetime
 import time
 import validators
 import re
 
-from enum import Enum
 from urllib.parse import urlparse, parse_qs
 from youtubesearchpython.__future__ import Video, Playlist, VideosSearch
 
+from src.utils.enums import MoosicSearchType, MetaType
 from src.utils.moosic_error import MoosicError
-
-class MetaType(Enum):
-    YOUTUBE = 1
-    SPOTIFY = 2
-
-class MoosicSearchType(Enum):
-    SEARCH_STRING = 1
-    YOUTUBE_SONG = 2
-    YOUTUBE_SHORTS = 3
-    YOUTUBE_PLAYLIST = 4
-    SPOTIFY_SONG = 5
-    SPOTIFY_ALBUM = 6
-    UNKNOWN = 7
 
 class InteractiveText:
     def __init__(self, sent_text, response):
@@ -144,6 +132,81 @@ class MoosicFinder:
                }
         return meta
 
+    @staticmethod
+    async def send_added_message(queue, description):
+        embed = discord.Embed(
+                description=description,
+                color=0xcc0000)
+        await queue.get('text_channel').send(embed=embed)
+
+    @staticmethod
+    async def add_song_or_playlist(input, queue, sp, ctx, translator, send_and_choose):
+        input_type = MoosicFinder.get_input_type(input)
+        parsed_url = urlparse(input) if validators.url(input) else None
+        playlist = False
+
+        match input_type:
+            case MoosicSearchType.YOUTUBE_SONG:
+                try:
+                    vd = await Video.get(input)
+                    queue.get('meta_list').append(MoosicFinder.gen_youtube_song(vd))
+                except:
+                    raise MoosicError("er_himalformed") #er_himalformed
+            case MoosicSearchType.YOUTUBE_SHORTS:
+                try:
+                    video_id = parsed_url.path.split("/")[2]
+                    vd = await Video.get(video_id)
+                    queue.get('meta_list').append(vd)
+                except:
+                    raise MoosicError("er_himalformed") #er_himalformed
+                pass
+            case MoosicSearchType.YOUTUBE_PLAYLIST:
+                fetch_pl = await MoosicFinder.fetch_yt_playlist(input)
+                pl = MoosicFinder.gen_youtube_playlist(fetch_pl)
+                queue.get('meta_list').extend(pl)
+                pl_len = len(pl)
+                playlist = True
+            case MoosicSearchType.SPOTIFY_SONG:
+                track_URI = input.split("/")[-1].split("?")[0]
+                track = sp.track(track_URI)
+                queue.get('meta_list').append(MoosicFinder.gen_spotify_song(track))
+            case MoosicSearchType.SPOTIFY_ALBUM:
+                playlist_URI = input.split("/")[-1].split("?")[0]
+                tracks_uri = sp.playlist_tracks(playlist_URI)["items"]
+                pl = MoosicFinder.gen_spotify_playlist(tracks_uri)
+                queue.get('meta_list').append(pl)
+                pl_len = len(pl)
+                playlist = True
+            case MoosicSearchType.SEARCH_STRING:
+                try:
+                    entries = (await VideosSearch(input, limit=10).next()).get("result")
+                except:
+                    raise MoosicError("er_url") #er_url
+
+                interactive_text = await send_and_choose(MoosicFinder.build_choose_text(entries))
+                try:
+                    choice = int(interactive_text.response.content)
+                except ValueError:
+                    await interactive_text.sent_text.delete()
+                    raise MoosicError("play_shcancel")
+                if choice < 1 or choice > len(entries):
+                    await interactive_text.sent_text.delete()
+                    raise MoosicError("er_shoutlen") #er_shoutlen
+                info = entries[choice - 1]
+                await interactive_text.sent_text.delete()
+                queue.get('meta_list').append(MoosicFinder.gen_youtube_song(info))
+            case _:
+                raise MoosicError("er_himalformed") #er_himalformed or UNKNOWN
+
+        if playlist:
+            description = translator.translate("pl_add", ctx.guild.id).format(pl_len=pl_len, mention=ctx.author.mention)
+            await MoosicFinder.send_added_message(queue, description)
+        else:
+            cur_song = queue.get('meta_list')[-1]
+            description = translator.translate("song_add", ctx.guild.id).format(index=len(queue.get('meta_list')), title=cur_song.get('title'), url=cur_song.get('url'), mention=ctx.author.mention)
+            await MoosicFinder.send_added_message(queue, description)
+
+    # Deprecated
     @staticmethod
     async def input_to_meta(input, guild_meta_list, sp, send_and_choose):
         input_type = MoosicFinder.get_input_type(input)

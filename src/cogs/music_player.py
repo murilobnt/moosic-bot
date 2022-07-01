@@ -1,4 +1,5 @@
 import discord
+import re
 import asyncio
 import random
 import time
@@ -17,8 +18,9 @@ from functools import partial
 
 from src.utils.music_verifications import MusicVerifications
 from src.utils.moosic_error import MoosicError
-from src.utils.moosic_finder import MetaType, InteractiveText, MoosicFinder
-from src.utils.helpers import Helpers, LoopState
+from src.utils.enums import MetaType, LoopState
+from src.utils.moosic_finder import InteractiveText, MoosicFinder
+from src.utils.helpers import Helpers
 from src.language.translator import Translator
 
 class Filter:
@@ -101,8 +103,7 @@ class MusicPlayer(commands.Cog):
                         raise MoosicError(self.translator.translate("er_shtimeout", ctx.guild.id))
 
                 try:
-                    type = await MoosicFinder.input_to_meta(input, queue['meta_list'], self.sp, send_and_choose)
-                    await Helpers.send_added_message(type, queue, self.translator, ctx.guild.id, ctx.author.mention)
+                    await MoosicFinder.add_song_or_playlist(input, queue, self.sp, ctx, self.translator, send_and_choose)
                 except MoosicError as e:
                     raise MoosicError(self.translator.translate(str(e), ctx.guild.id)) # This can't be a good practice!
         except:
@@ -205,7 +206,6 @@ class MusicPlayer(commands.Cog):
             m_time = time.strptime(timestamp, "%M:%S")
             gap = datetime.timedelta(minutes=m_time.tm_min, seconds=m_time.tm_sec).seconds
         except:
-            print(traceback.format_exc())
             failed1 = True
 
         try:
@@ -314,13 +314,13 @@ class MusicPlayer(commands.Cog):
                     if page > last_page:
                         page = 0
 
-                    await msg.edit(content=Helpers.build_q_page(ctx.guild.id, Helpers.build_q_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
+                    await msg.edit(content=Helpers.build_q_page(ctx.guild.id, Helpers.build_q_text(ctx.guild.id, meta_list, elapsed, song_index, page, self.translator), in_loop, page, last_page, self.translator))
                     await msg.remove_reaction(reaction, user)
                 elif str(reaction.emoji) == "◀️":
                     page -= 1
                     if page < 0:
                         page = last_page
-                    await msg.edit(content=Helpers.build_q_page(ctx.guild.id, Helpers.build_q_text(ctx.guild.id, meta_list, elapsed, song_index, page), in_loop, page, last_page))
+                    await msg.edit(content=Helpers.build_q_page(ctx.guild.id, Helpers.build_q_text(ctx.guild.id, meta_list, elapsed, song_index, page, self.translator), in_loop, page, last_page, self.translator))
                     await msg.remove_reaction(reaction, user)
                 else:
                     await msg.remove_reaction(reaction, user)
@@ -481,11 +481,11 @@ class MusicPlayer(commands.Cog):
             queue['same_song'] = None
 
     async def inactive(self, guild_id, queue):
-        await self.halt(guild_id, queue, 10, self.translator.translate("inactive_notice", guild_id))
+        await self.halt(guild_id, queue, 180, self.translator.translate("inactive_notice", guild_id))
         Helpers.cancel_task(queue['alone_task'])
 
     async def alone(self, guild_id, queue):
-        await self.halt(guild_id, queue, 10, self.translator.translate("alone_notice", guild_id))
+        await self.halt(guild_id, queue, 60, self.translator.translate("alone_notice", guild_id))
         Helpers.cancel_task(queue['halt_task'])
 
     async def halt(self, guild_id, queue, halt_time, reason):

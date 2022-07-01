@@ -2,14 +2,8 @@ import asyncio
 import discord
 import time
 
-from enum import Enum
 from src.utils.moosic_error import MoosicError
-from src.utils.moosic_finder import MoosicSearchType
-
-class LoopState(Enum):
-    NOT_ON_LOOP = 1
-    LOOP_QUEUE = 2
-    LOOP_TRACK = 3
+from src.utils.enums import LoopState, MoosicSearchType
 
 class Helpers:
     @staticmethod
@@ -96,6 +90,7 @@ class Helpers:
     def build_q_page(guild_id, songs, in_loop, page, last_page, translator):
         return translator.translate("q_page", guild_id).format(page_plus=page + 1, last_page_plus = last_page + 1, songs=songs, in_loop = in_loop)
 
+    # Deprecated
     @staticmethod
     async def send_added_message(type, queue, translator, guild_id, mention):
         match type:
