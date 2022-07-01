@@ -99,7 +99,7 @@ class Helpers:
     @staticmethod
     async def send_added_message(type, queue, translator, guild_id, mention):
         match type:
-            case MoosicSearchType.SEARCH_STRING | MoosicSearchType.YOUTUBE_SONG | MoosicSearchType.YOUTUBE_SHORT | MoosicSearchType.SPOTIFY_SONG:
+            case MoosicSearchType.SEARCH_STRING | MoosicSearchType.YOUTUBE_SONG | MoosicSearchType.YOUTUBE_SHORTS | MoosicSearchType.SPOTIFY_SONG:
                 cur_song = queue.get('meta_list')[-1]
                 description = translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=cur_song.get('title'), url=cur_song.get('url'), mention=mention)
                 embed = discord.Embed(
@@ -107,7 +107,7 @@ class Helpers:
                         color=0xcc0000)
                 await queue.get('text_channel').send(embed=embed)
             case MoosicSearchType.YOUTUBE_PLAYLIST | MoosicSearchType.SPOTIFY_ALBUM:
-                description = translator.translate("pl_add", guild_id).format(pl_len=len(playlist), mention=mention)
+                description = translator.translate("pl_add", guild_id).format(pl_len=len(playlist), mention=mention) # BUG! PLAYLIST NOT PASSED
                 embed = discord.Embed(
                         description=description,
                         color=0xcc0000)

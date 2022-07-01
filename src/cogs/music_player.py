@@ -24,7 +24,6 @@ from src.language.translator import Translator
 class Filter:
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
-
 class MusicPlayer(commands.Cog):
     """desc_mp"""
     def __init__(self, bot, servers_settings):
@@ -349,8 +348,8 @@ class MusicPlayer(commands.Cog):
         await dc_message.delete(delay=10)
 
     def ensure_no_hanging_tasks(self, queue):
-        self.cancel_halt_task(queue)
-        self.cancel_alone_task(queue)
+        Helpers.cancel_task(queue.get('halt_task'))
+        Helpers.cancel_task(queue.get('alone_task'))
 
     async def ensure_now_playing_deleted(self, queue):
         if queue and queue.get('now_playing_message'):
@@ -412,7 +411,7 @@ class MusicPlayer(commands.Cog):
             return
  
         if queue['loop'] == LoopState.LOOP_QUEUE and queue['halt_task'] and not queue['halt_task'].cancelled():
-            self.cancel_halt_task(queue)
+            Helpers.cancel_task(queue.get('halt_task'))
             queue['song_index'] = 0
             await self.play_songs(ctx.guild.id)
 
@@ -482,11 +481,11 @@ class MusicPlayer(commands.Cog):
             queue['same_song'] = None
 
     async def inactive(self, guild_id, queue):
-        await self.halt(guild_id, queue, 180, self.translator.translate("inactive_notice", guild_id))
+        await self.halt(guild_id, queue, 10, self.translator.translate("inactive_notice", guild_id))
         Helpers.cancel_task(queue['alone_task'])
 
     async def alone(self, guild_id, queue):
-        await self.halt(guild_id, queue, 60, self.translator.translate("alone_notice", guild_id))
+        await self.halt(guild_id, queue, 10, self.translator.translate("alone_notice", guild_id))
         Helpers.cancel_task(queue['halt_task'])
 
     async def halt(self, guild_id, queue, halt_time, reason):
@@ -522,7 +521,7 @@ class MusicPlayer(commands.Cog):
         if len(queue['connection'].channel.members) == 1:
             queue['alone_task'] = asyncio.ensure_future(self.alone(member.guild.id, queue))
         elif queue['alone_task']:
-            self.cancel_alone_task(queue)
+            Helpers.cancel_task(queue['alone_task'])
             if queue['halt_task']:
-                self.cancel_halt_task(queue)
+                Helpers.cancel_task(queue['halt_task'])
                 queue['halt_task'] = asyncio.ensure_future(self.inactive(member.guild.id, queue))

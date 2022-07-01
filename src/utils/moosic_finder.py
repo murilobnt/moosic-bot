@@ -165,7 +165,7 @@ class MoosicFinder:
                     raise MoosicError("er_himalformed") #er_himalformed
                 pass
             case MoosicSearchType.YOUTUBE_PLAYLIST:
-                pl = MoosicFinder.fetch_yt_playlist(input)
+                pl = await MoosicFinder.fetch_yt_playlist(input)
                 guild_meta_list.extend(pl)
             case MoosicSearchType.SPOTIFY_SONG:
                 track_URI = input.split("/")[-1].split("?")[0]
