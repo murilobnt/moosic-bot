@@ -21,7 +21,7 @@ This project uses [discord.py](https://github.com/Rapptz/discord.py),
 
 - [Python3](https://www.python.org/)
 - Pip (should come installed with Python)
-- (PostgreSQL)[https://www.postgresql.org/]
+- [PostgreSQL](https://www.postgresql.org/)
 
 ### How to install
 
