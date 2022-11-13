@@ -1,12 +1,14 @@
+import os
+import getopt
+import sys
+
+import asyncio
 import discord
 from discord.ext import commands
-import os
-import getopt, sys
 
-from pretty_help import PrettyHelp
+from src.cogs.server_settings import ServerSettings
 from src.utils.moosic_error import MoosicError
 from src.cogs.music_player import MusicPlayer
-from src.language.translator import Translator
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], "", ["no-database"])
@@ -21,6 +23,7 @@ for o, _ in opts:
         use_db = False
 
 intents = discord.Intents.default()
+intents.message_content = True
 intents.members = True
 
 # Pretty cool, huh?
@@ -42,8 +45,11 @@ async def on_command_error(ctx, error):
         await ctx.send(error)
     raise error
 
-if use_db:
-    from src.cogs.server_settings import ServerSettings
-    bot.add_cog(ServerSettings(bot, servers_settings))
-bot.add_cog(MusicPlayer(bot, servers_settings))
-bot.run(os.environ['MOO_BOT_KEY'])
+async def main():
+    async with bot:
+        if use_db:
+            await bot.add_cog(ServerSettings(bot, servers_settings))
+        await bot.add_cog(MusicPlayer(bot, servers_settings))
+        await bot.start(os.environ['MOO_BOT_KEY'])
+
+asyncio.run(main())

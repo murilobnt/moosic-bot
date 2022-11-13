@@ -37,7 +37,7 @@ class MusicPlayer(commands.Cog):
         self.fetcher = StreamURLFetcher()
         self.fetcher._getJS()
 
-    @commands.command(aliases=['p', 't', 'tocar'], description="ldesc_play", pass_context=True)
+    @commands.command(aliases=['p', 't', 'tocar'], description="ldesc_play")
     async def play(self, ctx, *, input : str):
         """Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz"""
         self.verificator.verify_user_voice(ctx)
@@ -122,7 +122,7 @@ class MusicPlayer(commands.Cog):
             Helpers.cancel_task(queue['halt_task'])
             await self.play_songs(ctx.guild.id)
 
-    @commands.command(aliases=['pular'], description="ldesc_skip", pass_context=True) 
+    @commands.command(aliases=['pular'], description="ldesc_skip") 
     async def skip(self, ctx, *, how_many : int = None):
         """Pula um determinado número de músicas na fila"""
         self.verificator.basic_verifications(ctx)
@@ -151,7 +151,7 @@ class MusicPlayer(commands.Cog):
 
         queue['connection'].stop()
 
-    @commands.command(aliases=['pausar'], description="ldesc_pause", pass_context=True)
+    @commands.command(aliases=['pausar'], description="ldesc_pause")
     async def pause(self, ctx):
         """Pausa a música que está tocando"""
         self.verificator.basic_verifications(ctx)
@@ -165,7 +165,7 @@ class MusicPlayer(commands.Cog):
         queue['connection'].pause()
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['resumir', 'retomar'], description="ldesc_resume", pass_context=True)
+    @commands.command(aliases=['resumir', 'retomar'], description="ldesc_resume")
     async def resume(self, ctx):
         """Resume a música que estava tocando"""
         self.verificator.basic_verifications(ctx)
@@ -181,7 +181,7 @@ class MusicPlayer(commands.Cog):
         queue['connection'].resume()
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['aleatorio, random'], description="ldesc_shuffle", pass_context=True)
+    @commands.command(aliases=['aleatorio, random'], description="ldesc_shuffle")
     async def shuffle(self, ctx):
         self.verificator.basic_verifications(ctx)
         queue = self.servers_queues.get(ctx.guild.id)
@@ -193,7 +193,7 @@ class MusicPlayer(commands.Cog):
 
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['time', 'to', 'para', 'em', 'tempo'], description="ldesc_seek", pass_context=True)
+    @commands.command(aliases=['time', 'to', 'para', 'em', 'tempo'], description="ldesc_seek")
     async def seek(self, ctx, timestamp : str):
         """Vai para um determinado tempo da música"""
         self.verificator.basic_verifications(ctx)
@@ -227,7 +227,7 @@ class MusicPlayer(commands.Cog):
         queue['connection'].stop()
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['now_playing', 'tocando_agora', 'ta'], description="ldesc_np", pass_context=True)
+    @commands.command(aliases=['now_playing', 'tocando_agora', 'ta'], description="ldesc_np")
     async def np(self, ctx):
         """Disponibiliza informações da música que está tocando"""
         self.verificator.basic_verifications(ctx)
@@ -274,7 +274,7 @@ class MusicPlayer(commands.Cog):
                     color=0xedd400)
             await ctx.send(embed=embed)
 
-    @commands.command(aliases=['q', 'fila', 'f', 'cola', 'c'], description="ldesc_queue", pass_context=True)
+    @commands.command(aliases=['q', 'fila', 'f', 'cola', 'c'], description="ldesc_queue")
     async def queue(self, ctx, song_index : int = None):
         """Mostra informações da lista de músicas"""
         self.verificator.basic_verifications(ctx)
@@ -331,7 +331,7 @@ class MusicPlayer(commands.Cog):
                 await msg.clear_reactions()
                 break
 
-    @commands.command(aliases=['dc', 'quit'], description="ldesc_disconnect", pass_context=True)
+    @commands.command(aliases=['dc', 'quit'], description="ldesc_disconnect")
     async def disconnect(self, ctx):
         """Desconecta o bot da chamada e encerra tudo"""
         self.verificator.verify_user_voice(ctx)
@@ -363,7 +363,7 @@ class MusicPlayer(commands.Cog):
         if self.servers_queues.get(guild_id):
             self.servers_queues.pop(guild_id)
 
-    @commands.command(aliases=['remover', 'rm'], description="ldesc_remove", pass_context=True)
+    @commands.command(aliases=['remover', 'rm'], description="ldesc_remove")
     async def remove(self, ctx, index : int):
         """Remove alguma música da fila"""
         self.verificator.basic_verifications(ctx)
@@ -387,7 +387,7 @@ class MusicPlayer(commands.Cog):
         songs_list.pop(m_index)
         await ctx.message.add_reaction("\U00002705")
 
-    @commands.command(aliases=['repetir'], description="ldesc_loop", pass_context=True)
+    @commands.command(aliases=['repetir'], description="ldesc_loop")
     async def loop(self, ctx):
         """Altera o modo de loop do bot"""
         self.verificator.basic_verifications_without_songs(ctx)
