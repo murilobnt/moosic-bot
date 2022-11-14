@@ -26,6 +26,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
+discord.utils.setup_logging()
+
 # Pretty cool, huh?
 
 servers_settings={}
