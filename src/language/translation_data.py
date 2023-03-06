@@ -1,6 +1,6 @@
 data = {
     'pt_br': {
-        "desc_mp" : "Tocador de áudio de vídeos do YouTube (Use moo help <commando>",
+        "desc_mp" : "Tocador de áudio de vídeos do YouTube",
         "desc_ss" : "Configurações para o servidor",
 
         "er_con" : "Você precisa estar conectado a um canal de voz",
