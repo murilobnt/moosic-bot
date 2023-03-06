@@ -1,6 +1,6 @@
 data = {
     'pt_br': {
-        "desc_mp" : "Tocador de áudio de vídeos do YouTube",
+        "desc_mp" : "Tocador de áudio de vídeos do YouTube (Use moo help <commando>",
         "desc_ss" : "Configurações para o servidor",
 
         "er_con" : "Você precisa estar conectado a um canal de voz",
@@ -86,6 +86,7 @@ Whoops! Houve um erro de download para {title}. Ele será pulado :)
         "resume" : "Resume a música que estava tocando",
         "seek" : "Vai para um determinado tempo da música",
         "skip" : "Pula um determinado número de músicas na fila",
+        "shuffle" : "Embaralha a fila de reprodução",
 
         "language" : "Define a linguagem do bot para o servidor",
 
@@ -107,6 +108,7 @@ As informações disponibilizadas são o índice da música na fila, o nome da m
         "ldesc_seek" : """Este comando vai a um determinado tempo da música que está tocando. 
 Por exemplo, se eu quiser ir para o tempo 3 minutos e 2 segundos da música que está tocando, posso utilizar moo seek 03:02, ou moo seek 3:2, ou moo seek 182. Ou seja, é possível passar um argumento como HH:MM:SS, MM:SS ou apenas segundos.""",
         "ldesc_skip" : """Este comando pula um determinado número de músicas na fila. Ele recebe um argumento opcional do número de músicas a serem puladas, mas caso ele não esteja presente, ele pula apenas a música atual.""",
+        "ldesc_shuffle" : """Este comando embaralha a fila de reprodução em uma ordem aleatória.""",
 
         "ldesc_language" : """Este comando define a linguagem para o servidor. 
 Ele não recebe argumento algum, mas uma resposta é enviada pelo bot logo após a utilização, mostrando possíveis opções de linguagens.
@@ -200,6 +202,7 @@ Whoops! There was an download error for {title}. It will be skipped :)
         "resume" : "Resumes the song that was playing",
         "seek" : "Seeks a timestamp of the song",
         "skip" : "Skips a number of songs of the queue",
+        "shuffle" : "Shuffles the queue",
 
         "language" : "Defines the language of the bot for the server",
 
@@ -221,6 +224,7 @@ That information is the song index in the queue, the name of the song, the durat
         "ldesc_seek" : """This command seeks a timestamp in the song that is playing.
 For example, if I'd like to go to 3 minutes and 2 seconds of the song that is playing, I can use moo seek 03:02, or moo seek 3:2, or moo seek 182. It is possible to provide an argument as HH:MM:SS, MM:SS or only seconds.""",
         "ldesc_skip" : """This command skips a number of songs in the queue. It receives an optional argument of the number of songs to be skipped. If it is not specified, it will only skip the current song.""",
+        "ldesc_shuffle" : """This command shuffles the queue to a random sequence.""",
 
         "ldesc_language" : """This command defines the language of the bot for the server. 
 It doesn't need any argument, but a response is given by the bot right after, showing possible language options.
@@ -315,6 +319,7 @@ Whoops! Hubo un error de download para {title}. Será saltado :)
         "resume" : "Resume la música que estaba tocando",
         "seek" : "Va a un momento determinado de la música",
         "skip" : "Se salta una cierta cantidad de músicas en la cola",
+        "shuffle" : "Genera una orden aleatoria de la cola",
 
         "language" : "Define el idioma del bot para el servidor",
 
@@ -337,6 +342,7 @@ La información proporcionada es el índice de la canción en la cola, el nombre
         "ldesc_seek" : """Este comando va a un cierto tempo de la canción que se está reproduciendo actualmente.
 Por ejemplo, si quiero ir al tiempo de 3 minutos y 2 segundos de la canción que se está reproduciendo actualmente, puedo usar moo seek 3:02, moo seek 3:2, o moo seek 182. Es decir, es posible pasar un argumento como HH:MM:SS, MM:SS, o solo segundos.""",
         "ldesc_skip" : """Este comando salta una cierta cantidad de canciones en la cola. Se necesita un argumento opcional del número de canciones que se van a saltar, pero si no está presente, simplemente se salta la canción actual.""",
+        "ldesc_shuffle" : """Este comando baraja la cola en una orden aleatoria.""",
 
         "ldesc_language" : """Este comando establece el idioma del servidor.
 No requiere ningún argumento, pero el bot envía una respuesta inmediatamente después de su uso, mostrando posibles opciones de idioma.

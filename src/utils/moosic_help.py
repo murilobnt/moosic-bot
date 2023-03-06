@@ -156,7 +156,7 @@ class MoosicHelp(PrettyHelp):
             "Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\n"
             "You can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."
         )
-        return note.format(ctx=self.context, help=self)
+        return note.format(ctx=self.context, help=self if hasattr(self, "clean_prefix") else self.context,)
 
     async def prepare_help_command(
         self, ctx: commands.Context, command: commands.Command
