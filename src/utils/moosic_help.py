@@ -171,5 +171,5 @@ class MoosicHelp(PrettyHelp):
                 raise commands.BotMissingPermissions(("add reactions permission",))
 
         self.paginator.clear()
-        self.paginator.ending_note = self.get_ending_note(ctx.guild.id if ctx.guild else -1)
+        #self.paginator.ending_note = self.get_ending_note(ctx.guild.id if ctx.guild else -1)
         await HelpCommand.prepare_help_command(ctx, command)
