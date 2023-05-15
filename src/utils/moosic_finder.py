@@ -1,7 +1,5 @@
-import spotipy
 import discord
 import datetime
-import time
 import validators
 import re
 
@@ -63,6 +61,8 @@ class MoosicFinder:
                 match path:
                     case "playlist":
                         return MoosicSearchType.SPOTIFY_ALBUM
+                    case "album":
+                        return MoosicSearchType.SPOTIFY_ALBUM
                     case "track":
                         return MoosicSearchType.SPOTIFY_SONG
                     case _:
@@ -82,13 +82,22 @@ class MoosicFinder:
     @staticmethod
     def gen_spotify_playlist(playlist_items):
         meta_list = []
+        print(playlist_items)
         for item in playlist_items:
-            meta = { 'type'            : MetaType.SPOTIFY,
-                     'title'           : item['track']['name'],
-                     'url'             : item['track']['external_urls']['spotify'],
-                     'duration'        : int(item['track']['duration_ms'] / 1000),
-                     'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']} views"
-                   }
+            if item.get('track'):
+                meta = { 'type'            : MetaType.SPOTIFY,
+                         'title'           : item['track']['name'],
+                         'url'             : item['track']['external_urls']['spotify'],
+                         'duration'        : int(item['track']['duration_ms'] / 1000),
+                         'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']} views"
+                       }
+            else:
+                meta = { 'type'            : MetaType.SPOTIFY,
+                         'title'           : item['name'],
+                         'url'             : item['external_urls']['spotify'],
+                         'duration'        : int(item['duration_ms'] / 1000),
+                         'search_query'    : f"{item['artists'][0]['name']} {item['name']} views"
+                        } 
             meta_list.append(meta)
         return meta_list
 
@@ -172,7 +181,10 @@ class MoosicFinder:
                 queue.get('meta_list').append(MoosicFinder.gen_spotify_song(track))
             case MoosicSearchType.SPOTIFY_ALBUM:
                 playlist_URI = input.split("/")[-1].split("?")[0]
-                tracks_uri = sp.playlist_tracks(playlist_URI)["items"]
+                try:
+                    tracks_uri = sp.playlist_tracks(playlist_URI)["items"]
+                except:
+                    tracks_uri = sp.album_tracks(playlist_URI)["items"]
                 pl = MoosicFinder.gen_spotify_playlist(tracks_uri)
                 queue.get('meta_list').extend(pl)
                 pl_len = len(pl)
