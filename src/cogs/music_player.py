@@ -22,6 +22,7 @@ from src.utils.enums import MetaType, LoopState
 from src.utils.moosic_finder import InteractiveText, MoosicFinder
 from src.utils.helpers import Helpers
 from src.language.translator import Translator
+from src.utils.moosic_grabber import MoosicGrabber
 
 class Filter:
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
@@ -443,22 +444,14 @@ class MusicPlayer(commands.Cog):
 
         if not queue['same_song']:
             if song['type'] == MetaType.YOUTUBE:
-                video = await Video.get(song.get('id'))
-                if song.get("duration"):
-                    queue['current_audio_url'] = await self.fetcher.get(video, 251)
-                else:
-                    queue['current_audio_url'] = video['streamingData']['hlsManifestUrl']
-
+                video = MoosicGrabber.request_yt(song.get('id'))
+                queue['current_audio_url'] = video.get_audio_url()
                 url=f"https://youtube.com/watch?v={song.get('id')}" 
 
             elif song['type'] == MetaType.SPOTIFY:
                 lookup = (await VideosSearch(song['search_query'], limit=1).next()).get('result')[0]
-                video = await Video.get(lookup.get('id'))
-                if song.get("duration"):
-                    queue['current_audio_url'] = await self.fetcher.get(video, 251)
-                else:
-                    queue['current_audio_url'] = video['streamingData']['hlsManifestUrl']
-
+                video = MoosicGrabber.request_yt(song.get('id'))
+                queue['current_audio_url'] = video.get_audio_url()
                 url=song['url']
 
             duration = song['duration']
@@ -470,7 +463,7 @@ class MusicPlayer(commands.Cog):
                     description=Helpers.format_duration(duration), 
                     color=0xf57900)
             embed.set_author(name=name)
-            embed.set_thumbnail(url=(video).get('thumbnails')[-1].get('url'))
+            embed.set_thumbnail(url=(video).get_thumbnail())
             queue['now_playing_message'] = await text_channel.send(embed=embed)
         else:
             options['before_options'] = f"{options['before_options']} {queue['same_song']['before_options']}"
