@@ -450,7 +450,7 @@ class MusicPlayer(commands.Cog):
 
             elif song['type'] == MetaType.SPOTIFY:
                 lookup = (await VideosSearch(song['search_query'], limit=1).next()).get('result')[0]
-                video = MoosicGrabber.request_yt(song.get('id'))
+                video = MoosicGrabber.request_yt(lookup.get('id'))
                 queue['current_audio_url'] = video.get_audio_url()
                 url=song['url']
 
