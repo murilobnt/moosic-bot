@@ -82,7 +82,6 @@ class MoosicFinder:
     @staticmethod
     def gen_spotify_playlist(playlist_items):
         meta_list = []
-        print(playlist_items)
         for item in playlist_items:
             if item.get('track'):
                 meta = { 'type'            : MetaType.SPOTIFY,
