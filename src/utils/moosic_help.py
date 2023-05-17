@@ -113,7 +113,7 @@ class MoosicHelp(PrettyHelp):
         super().__init__(**options)
         self.translator = Translator(server_settings)
         self.paginator = MoosicPaginator(
-            options.pop("show_index", True), server_settings, self.color
+            options.pop("show_index", True), server_settings
         )
 
     async def send_bot_help(self, mapping: dict):
