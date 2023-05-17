@@ -121,6 +121,7 @@ class MusicPlayer(commands.Cog):
                 raise MoosicError(self.translator.translate("er_conc", ctx.guild.id))
         elif queue.get('halt_task'):
             Helpers.cancel_task(queue['halt_task'])
+            queue['halt_task'] = None
             await self.play_songs(ctx.guild.id)
 
     @commands.command(aliases=['pular'], description="ldesc_skip") 
@@ -191,6 +192,8 @@ class MusicPlayer(commands.Cog):
         queue['stop_loop'] = True
         queue['connection'].stop()
         await self.play_songs(ctx.guild.id)
+        Helpers.cancel_task(queue.get('halt_task'))
+        queue['halt_task'] = None
 
         await ctx.message.add_reaction("\U00002705")
 
@@ -354,6 +357,8 @@ class MusicPlayer(commands.Cog):
     def ensure_no_hanging_tasks(self, queue):
         Helpers.cancel_task(queue.get('halt_task'))
         Helpers.cancel_task(queue.get('alone_task'))
+        queue['halt_task'] = None
+        queue['alone_task'] = None
 
     async def ensure_now_playing_deleted(self, queue):
         if queue and queue.get('now_playing_message'):
@@ -416,6 +421,7 @@ class MusicPlayer(commands.Cog):
  
         if queue['loop'] == LoopState.LOOP_QUEUE and queue['halt_task'] and not queue['halt_task'].cancelled():
             Helpers.cancel_task(queue.get('halt_task'))
+            queue['halt_task'] = None
             queue['song_index'] = 0
             await self.play_songs(ctx.guild.id)
 
@@ -479,10 +485,12 @@ class MusicPlayer(commands.Cog):
     async def inactive(self, guild_id, queue):
         await self.halt(guild_id, queue, 180, self.translator.translate("inactive_notice", guild_id))
         Helpers.cancel_task(queue['alone_task'])
+        queue['alone_task'] = None
 
     async def alone(self, guild_id, queue):
         await self.halt(guild_id, queue, 60, self.translator.translate("alone_notice", guild_id))
         Helpers.cancel_task(queue['halt_task'])
+        queue['halt_task'] = None
 
     async def halt(self, guild_id, queue, halt_time, reason):
         await asyncio.sleep(halt_time)
@@ -522,6 +530,8 @@ class MusicPlayer(commands.Cog):
             queue['alone_task'] = asyncio.ensure_future(self.alone(member.guild.id, queue))
         elif queue['alone_task']:
             Helpers.cancel_task(queue['alone_task'])
+            queue['alone_task'] = None
             if queue['halt_task']:
                 Helpers.cancel_task(queue['halt_task'])
+                queue['halt_task'] = None
                 queue['halt_task'] = asyncio.ensure_future(self.inactive(member.guild.id, queue))

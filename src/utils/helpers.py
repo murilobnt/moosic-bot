@@ -21,8 +21,6 @@ class Helpers:
             if not task.done():
                 task.cancel()
 
-            task = None
-
     # Mover essas duas funções para outro arquivo
     @staticmethod
     def play_song_index(queue, song_index):
