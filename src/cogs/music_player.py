@@ -3,14 +3,13 @@ import re
 import asyncio
 import random
 import time
-import traceback
 import os
 import spotipy
 import datetime
 
 from spotipy.oauth2 import SpotifyClientCredentials
-from discord import FFmpegPCMAudio, PCMVolumeTransformer
-from youtubesearchpython.__future__ import Video, Playlist, VideosSearch, StreamURLFetcher
+from discord import FFmpegPCMAudio
+from youtubesearchpython.__future__ import VideosSearch, StreamURLFetcher
 from discord.ext import commands
 
 from enum import Enum

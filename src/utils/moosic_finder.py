@@ -156,7 +156,7 @@ class MoosicFinder:
         match input_type:
             case MoosicSearchType.YOUTUBE_SONG:
                 try:
-                    vd = await Video.get(input, get_upload_date=True)
+                    vd = await Video.getInfo(input)
                     queue.get('meta_list').append(MoosicFinder.gen_youtube_song(vd))
                 except:
                     raise MoosicError("er_himalformed") #er_himalformed
