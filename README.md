@@ -3,7 +3,7 @@
 *A simple discord music bot written in Python*
 
 **Moosic** is a bot that born from the passing of groovy. It was a fun 
-challenge to embrace. The bot have been used in around four servers for a while,
+challenge to embrace. The bot has been used in some private servers for a while,
 and although some bugs are still existent, it works!
 
 These are its main features:
@@ -77,7 +77,9 @@ instead:
 python moosic.py --no-database
 ```
 
-**However, the language of the bot will only be available in portuguese.**
+**However, the language of the bot will only be available in portuguese.** Also,
+MOO_BOT_KEY, SP_CLIENT and SP_SECRET must be existing environment variables. See
+Step 2.
 
 ### License
 
