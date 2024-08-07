@@ -51,7 +51,7 @@ async def main():
     async with bot:
         if use_db:
             await bot.add_cog(ServerSettings(bot, servers_settings))
-        await bot.add_cog(MusicPlayer(bot, servers_settings))
-        await bot.start(os.environ['MOO_BOT_KEY'])
+        await bot.add_cog(MusicPlayer(bot))
+        await bot.start(os.environ['MOO_UBOT_KEY'])
 
 asyncio.run(main())

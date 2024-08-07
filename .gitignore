@@ -110,3 +110,4 @@ dmypy.json
 __pycache__
 
 src/utils/moosic_radio.py
+.moosic_venv

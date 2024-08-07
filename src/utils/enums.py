@@ -18,3 +18,7 @@ class MoosicSearchType(Enum):
     SPOTIFY_ALBUM = 6
     UNKNOWN = 7
 
+class LoopIntent(Enum):
+    NORMAL = 1
+    SEEK = 2
+

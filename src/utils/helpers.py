@@ -1,11 +1,38 @@
 import asyncio
 import discord
 import time
+import datetime
+import re
 
 from src.utils.moosic_error import MoosicError
 from src.utils.enums import LoopState, MoosicSearchType
+from src.utils.translator import Translator
 
 class Helpers:
+
+    @staticmethod
+    def time_to_seconds(time):
+        return (time.hour * 60 + time.minute) * 60 + time.second
+
+    @staticmethod
+    def is_int(value):
+        try:
+            int_value = int(value)
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def str_to_time(time_str):
+        time_match = re.search('^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$', time_str)
+        if time_match.group(1):
+            FORMAT = "%H:%M:%S"
+        elif time_match.group(2):
+            FORMAT = "%M:%S"
+        elif time_match.group(3):
+            FORMAT = "%S"
+        return datetime.datetime.strptime(time_str, FORMAT).time()
+
     @staticmethod
     def format_duration(duration):
         if not duration:
@@ -16,38 +43,57 @@ class Helpers:
             return time.strftime("%M:%S", time.gmtime(int(duration)))
 
     @staticmethod
+    def get_youtube_url_id(youtube_url):
+        id_match = re.search('(?:v=|\/)([0-9A-Za-z_-]{11}).*', youtube_url)
+        return id_match.group(1)
+
+    @staticmethod
     def cancel_task(task):
         if task:
             if not task.done():
                 task.cancel()
 
-    # Mover essas duas funções para outro arquivo
     @staticmethod
-    def play_song_index(queue, song_index):
-        modifier = 2 if not queue.get('halt_task') and not queue.get('loop') == LoopState.LOOP_TRACK else 1
-        url_int = song_index - modifier
-
-        if url_int < 1 - modifier or url_int > len(queue['meta_list']) - modifier:
-            raise MoosicError("er_index") # er_index
-
-        queue['song_index'] = url_int
+    def format_time(time_seconds):
+        if time_seconds < 60:
+            return (time.strftime("%-Ss", time.gmtime(time_seconds)))
+        elif time_seconds < 3600:
+            return (time.strftime("%-Mm %-Ss", time.gmtime(time_seconds)))
+        else:
+            return (time.strftime("%-Hh %-Mm %-Ss", time.gmtime(time_seconds)))
 
     @staticmethod
-    async def connect_and_play(ctx, queue, play_songs):
+    def get_gap_from_timestamp(time_str):
+        failed1 = False
+        failed2 = False
+
         try:
-            queue['connection'] = await ctx.author.voice.channel.connect()
-            await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
-            await play_songs(ctx.guild.id)
-        except (asyncio.TimeoutError, discord.ClientException) as e:
-            raise MoosicError("er_conc")
+            m_time = time.strptime(time_str, "%M:%S")
+            gap = datetime.timedelta(minutes=m_time.tm_min, seconds=m_time.tm_sec).seconds
+        except:
+            failed1 = True
+
+        try:
+            m_time = time.strptime(time_str, "%H:%M:%S")
+            gap = datetime.timedelta(hours=m_time.tm_hour, minutes=m_time.tm_min, seconds=m_time.tm_sec).seconds
+        except:
+            failed2 = True
+
+        if failed1 and failed2:
+            try:
+                gap = int(time_str)
+            except:
+                print("Should rise an error here (helpers, get_gap_from_timestamp)")
+
+        return gap
 
     @staticmethod
-    def build_q_text(guild_id, meta_list, elapsed, song_index, page, translator):
+    def build_q_text(music_list, elapsed, song_index, page):
         songs = ""
         it = 1 + (page * 10)
         index = it
 
-        for entry in meta_list[index - 1 : (index - 1) + 10]:
+        for entry in music_list[index - 1 : (index - 1) + 10]:
             live = True if not entry.get('duration') else False
 
             if not live:
@@ -63,16 +109,16 @@ class Helpers:
                 formatted_duration = "LIVE"
 
             if it == song_index + 1:
-                np = translator.translate("q_np", guild_id)
+                np = Translator.translate("q_np")
                 if not live:
-                    remaining = translator.translate("q_remaining", guild_id)
+                    remaining = Translator.translate("q_remaining")
                     songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} {remaining} l> {np}"
                 else:
                     songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} l> {np}"
             else:
                     songs = songs + str(it) + f". ♫ {entry.get('title')} <l {formatted_duration} l>"
 
-            if it == len(meta_list):
+            if it == len(music_list):
                 break
 
             if it == index + 9:
@@ -85,23 +131,17 @@ class Helpers:
         return songs
 
     @staticmethod
-    def build_q_page(guild_id, songs, in_loop, page, last_page, translator):
-        return translator.translate("q_page", guild_id).format(page_plus=page + 1, last_page_plus = last_page + 1, songs=songs, in_loop = in_loop)
+    def build_q_page(q_text, in_loop, page, last_page):
+        return Translator.translate("q_page").format(page_plus=page + 1, last_page_plus = last_page + 1, songs=q_text, in_loop = in_loop)
 
-    # Deprecated
     @staticmethod
-    async def send_added_message(type, queue, translator, guild_id, mention):
-        match type:
-            case MoosicSearchType.SEARCH_STRING | MoosicSearchType.YOUTUBE_SONG | MoosicSearchType.YOUTUBE_SHORTS | MoosicSearchType.SPOTIFY_SONG:
-                cur_song = queue.get('meta_list')[-1]
-                description = translator.translate("song_add", guild_id).format(index=len(queue.get('meta_list')), title=cur_song.get('title'), url=cur_song.get('url'), mention=mention)
-                embed = discord.Embed(
-                        description=description,
-                        color=0xcc0000)
-                await queue.get('text_channel').send(embed=embed)
-            case MoosicSearchType.YOUTUBE_PLAYLIST | MoosicSearchType.SPOTIFY_ALBUM:
-                description = translator.translate("pl_add", guild_id).format(pl_len=len(playlist), mention=mention) # BUG! PLAYLIST NOT PASSED
-                embed = discord.Embed(
-                        description=description,
-                        color=0xcc0000)
-                await queue.get('text_channel').send(embed=embed)
+    def build_choose_text(entries):
+        songs_str = ""
+        i = 1
+        for entry in entries:
+            songs_str = songs_str + "[" + str(i) + f"] : {entry.get('title')} <{entry.get('channel').get('name')}, {entry.get('duration')}>"
+            if not i == len(entries):
+                songs_str = songs_str + "\n"
+            i += 1
+
+        return songs_str
