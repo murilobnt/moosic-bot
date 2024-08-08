@@ -18,9 +18,8 @@ This project uses [discord.py](https://github.com/Rapptz/discord.py),
 
 ### Requires
 
-- [Python3](https://www.python.org/)
+- [Python 3](https://www.python.org/)
 - Pip (should come installed with Python)
-- [PostgreSQL](https://www.postgresql.org/)
 
 ### How to install
 
