@@ -28,6 +28,12 @@ class MusicVerifications:
         MusicVerifications.verify_same_voice(ctx)
 
     @staticmethod
+    def verify_perms(ctx):
+        channel_permissions = ctx.author.voice.channel.permissions_for(ctx.guild.me)
+        if not channel_permissions.connect or not channel_permissions.speak:
+            raise MoosicError("er_perm")
+
+    @staticmethod
     def verify_skip_quantity(how_many):
         try:
             quantity = int(how_many)
@@ -36,12 +42,6 @@ class MusicVerifications:
 
         if how_many <= 0:
             raise MoosicError("er_skipindex")
-
-    @staticmethod
-    def verify_perms(ctx):
-        channel_permissions = ctx.author.voice.channel.permissions_for(ctx.guild.me)
-        if not channel_permissions.connect or not channel_permissions.speak:
-            raise MoosicError("er_perm")
 
     @staticmethod
     def verify_timestamp(timestamp):

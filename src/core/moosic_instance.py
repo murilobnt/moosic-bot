@@ -6,6 +6,7 @@ from src.operations.discord_stuff import DiscordStuff
 from src.operations.disconnector import Disconnector
 
 from src.utils.moosic_finder import MoosicFinder
+from src.utils.moosic_error import MoosicError
 from src.utils.enums import MoosicSearchType
 
 class MoosicInstance:
@@ -46,6 +47,9 @@ class MoosicInstance:
             await self.discord_stuff.send_new_playlist_message(pl_len, user_message.author.mention, user_message.channel)
 
     def go_to_song(self, index):
+        if index <= 0 or index > len(self.music_control.music_list):
+            raise MoosicError("er_index")
+
         self.music_control.current_index = index - 1
 
         if self.music_control.playing:
@@ -75,11 +79,15 @@ class MoosicInstance:
     def remove(self, index):
         m_index = index - 1
         current_song = m_index == self.music_control.current_index
+
         self.music_control.remove(m_index)
         if current_song:
             self.discord_stuff.stop_current_audio()
 
     async def np(self, mention, text_channel):
+        if not self.music_control.playing:
+            raise MoosicError("er_npdat")
+
         elapsed = self.music_control.get_elapsed()
         song = self.music_control.get_current_song()
         position = self.music_control.current_index + 1

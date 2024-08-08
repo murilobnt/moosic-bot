@@ -8,6 +8,7 @@ import time
 
 from src.utils.moosic_finder import MoosicFinder, InteractiveText
 from src.utils.moosic_grabber import MoosicGrabber
+from src.utils.moosic_error import MoosicError
 from src.utils.helpers import Helpers
 
 from src.utils.enums import MetaType, LoopState
@@ -36,8 +37,7 @@ class DiscordStuff:
             self.vc_conn = await voice_channel.connect()
             await voice_channel.guild.change_voice_state(channel=voice_channel, self_deaf=True)
         except (asyncio.TimeoutError, discord.ClientException) as e:
-            return
-            # raise MoosicError("er_conc") # Change?
+            raise MoosicError("er_conc")
 
     async def video_search_query(self, message, query):
         entries = MoosicFinder.search_youtube(query)
@@ -51,16 +51,16 @@ class DiscordStuff:
             interactive_text = InteractiveText(choice_picker, response)
         except asyncio.TimeoutError:
             await choice_picker.delete()
-            #raise MoosicError(self.translator.translate("er_shtimeout", ctx.guild.id))
+            raise MoosicError("er_shtimeout")
 
         try:
             choice = int(interactive_text.response.content)
         except ValueError:
             await interactive_text.sent_text.delete()
-            #raise MoosicError("play_shcancel")
+            raise MoosicError("play_shcancel")
         if choice < 1 or choice > len(entries):
             await interactive_text.sent_text.delete()
-            #raise MoosicError("er_shoutlen") #er_shoutlen
+            raise MoosicError("er_shoutlen")
         info = entries[choice - 1]
         await interactive_text.sent_text.delete()
 

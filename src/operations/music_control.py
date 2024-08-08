@@ -51,7 +51,7 @@ class MusicControl:
             self.music_list.append(song)
             return song
         except:
-            raise MoosicError("er_himalformed") #er_himalformed
+            raise MoosicError("er_himalformed")
 
     def add_youtube_shorts_song(self, youtube_url):
         try:
@@ -62,7 +62,7 @@ class MusicControl:
             self.music_list.append(song)
             return song
         except:
-            raise MoosicError("er_himalformed") #er_himalformed
+            raise MoosicError("er_himalformed")
 
     def add_youtube_search(self, info):
         song = MoosicFinder.gen_youtube_song_search(info)
@@ -93,9 +93,15 @@ class MusicControl:
         return len(pl)
 
     def pause(self):
+        if self.paused_timestamp:
+            raise MoosicError("er_paused")
+
         self.paused_timestamp = time.time()
 
     def resume(self):
+        if not self.paused_timestamp:
+            raise MoosicError("er_nopause")
+
         self.elapsed_timestamp = self.elapsed_timestamp + (time.time() - self.paused_timestamp)
         self.paused_timestamp = None
 
@@ -113,9 +119,7 @@ class MusicControl:
 
     def remove(self, index):
         if index >= len(self.music_list):
-            print("Should rise an error....")
-            return
-            #raise MoosicError(self.translator.translate("er_rmindex", ctx.guild.id))
+            raise MoosicError("er_rmindex")
 
         if self.loop_state == LoopState.LOOP_TRACK:
             if index < self.current_index:

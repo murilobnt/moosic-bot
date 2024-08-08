@@ -140,7 +140,4 @@ class MoosicFinder:
 
     @staticmethod
     def search_youtube(query):
-        try:
-            return VideosSearch(query, limit=10).result().get("result")
-        except:
-            raise MoosicError("er_url") #er_url
+        return VideosSearch(query, limit=10).result().get("result")
