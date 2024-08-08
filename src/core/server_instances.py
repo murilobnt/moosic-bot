@@ -1,13 +1,18 @@
 from src.core.moosic_instance import MoosicInstance
 from src.operations.disconnector import Disconnector
 
+from src.utils.moosic_error import MoosicError
+
 class ServerInstances:
     def __init__(self, bot):
         self.bot = bot
         self.instances = {}
 
     def get_instance(self, guild_id):
-        return self.instances.get(guild_id)
+        instance = self.instances.get(guild_id)
+        if not instance:
+            raise MoosicError("er_vr")
+        return instance
 
     def create_instance(self, guild_id, text_channel):
         instance = MoosicInstance(self.bot, text_channel, Disconnector(guild_id, self.disconnect))

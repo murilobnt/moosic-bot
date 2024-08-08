@@ -1,12 +1,9 @@
 import os
-import getopt
-import sys
 
 import asyncio
 import discord
 from discord.ext import commands
 
-from src.cogs.server_settings import ServerSettings
 from src.utils.moosic_error import MoosicError
 from src.cogs.music_player import MusicPlayer
 from src.utils.moosic_help import MoosicHelp

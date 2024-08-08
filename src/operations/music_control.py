@@ -11,6 +11,7 @@ from src.utils.helpers import Helpers
 from src.utils.moosic_finder import MoosicFinder
 from src.utils.moosic_grabber import MoosicGrabber
 from src.utils.translator import Translator
+from src.utils.moosic_error import MoosicError
 
 from src.utils.enums import LoopState
 
@@ -22,7 +23,7 @@ class Seeker:
 
     def seek(self, timestamp):
         if not re.match('^((?:\d{1,2}:)?(?:\d{1,2}:)?(?:\d{1,2})|\d+)$', timestamp):
-            return # raise error
+            raise MoosicError("er_seekarg")
 
         self.on_seek = True
         self.seek_options = f"-ss {timestamp}"
