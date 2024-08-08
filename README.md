@@ -36,7 +36,7 @@ work properly:
 Once these are set, it's time to fetch the project's dependencies.
 
 ```
-python3 -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 And it should be enough.
