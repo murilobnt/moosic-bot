@@ -5,11 +5,10 @@ from typing import List, Union
 
 from pretty_help import PrettyHelp
 from pretty_help.pretty_help import Paginator
-from src.language.translator import Translator
+from src.utils.translator import Translator
 
 class MoosicPaginator(Paginator):
-    def __init__(self, show_index, server_settings, color=0):
-        self.translator = Translator(server_settings)
+    def __init__(self, show_index, color=0):
         super().__init__(show_index, color)
 
     def add_cog(
@@ -27,17 +26,17 @@ class MoosicPaginator(Paginator):
             return
 
         page_title = title.qualified_name if cog else title
-        embed = self._new_page(page_title, (self.translator.translate(title.description, guild_id) or "") if cog else "")
+        embed = self._new_page(page_title, (Translator.translate(title.description) or "") if cog else "")
 
         self._add_command_fields(embed, page_title, commands_list, guild_id)
 
     @staticmethod
-    def __command_info(command: Union[commands.Command, commands.Group], translator, guild_id):
+    def __command_info(command: Union[commands.Command, commands.Group]):
         info = ""
         if command.description:
-            info += translator.translate(command.description, guild_id) + "\n\n"
+            info += Translator.translate(command.description) + "\n\n"
         if command.qualified_name:
-            info += translator.translate(command.qualified_name, guild_id)
+            info += Translator.translate(command.qualified_name)
         if not info:
             info = "None"
         return info
@@ -52,7 +51,7 @@ class MoosicPaginator(Paginator):
         desc = f"{command.description}\n\n" if command.description else ""
         page = self._new_page(
             command.qualified_name,
-            f"{self.prefix}{self.__command_info(command, self.translator, guild_id)}{self.suffix}" or "",
+            f"{self.prefix}{self.__command_info(command)}{self.suffix}" or "",
         )
         if command.aliases:
             aliases = ", ".join(command.aliases)
@@ -97,7 +96,7 @@ class MoosicPaginator(Paginator):
                 self._add_page(embed)
                 embed = self._new_page(page_title, embed.description)
 
-            trans = self.translator.translate(command.name, guild_id)
+            trans = Translator.translate(command.name)
 
             embed.add_field(
                 name=command.name,
@@ -107,13 +106,12 @@ class MoosicPaginator(Paginator):
         self._add_page(embed)
 
 class MoosicHelp(PrettyHelp):
-    def __init__(self, server_settings, **options):
+    def __init__(self, **options):
         options['index_title'] = "help_it"
         options['ending_note'] = "help_en"
         super().__init__(**options)
-        self.translator = Translator(server_settings)
         self.paginator = MoosicPaginator(
-            options.pop("show_index", True), server_settings
+            options.pop("show_index", True)
         )
 
     async def send_bot_help(self, mapping: dict):
@@ -141,7 +139,7 @@ class MoosicHelp(PrettyHelp):
             )
             for cog, command_list in sorted_map:
                 self.paginator.add_cog(cog, command_list, guild_id)
-            self.paginator.add_index(self.translator.translate(self.index_title, guild_id), bot)
+            self.paginator.add_index(Translator.translate(self.index_title), bot)
         await self.send_pages()
 
     async def send_command_help(self, command: commands.Command):
@@ -152,7 +150,7 @@ class MoosicHelp(PrettyHelp):
 
     def get_ending_note(self, guild_id):
         """Returns help command's ending note. This is mainly useful to override for i18n purposes."""
-        note = self.translator.translate(self.ending_note, guild_id) or (
+        note = Translator.translate(self.ending_note) or (
             "Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\n"
             "You can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."
         )

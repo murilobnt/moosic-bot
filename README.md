@@ -11,7 +11,6 @@ These are its main features:
 * Basic controls of skipping, pausing, resuming, shuffling, disconnecting,
 and seeking.
 * Basic information about reproduction queue with now playing, and queue.
-* Supports three languages: Portuguese, English and Spanish.
 
 This project uses [discord.py](https://github.com/Rapptz/discord.py),
 [spotipy](https://spotipy.readthedocs.io/en/master/), and 
@@ -25,32 +24,12 @@ This project uses [discord.py](https://github.com/Rapptz/discord.py),
 
 ### How to install
 
-#### Step 1: Import DB Schema
-
-*NOTE: ALL DATABASE RELATED STEPS OR SUBSTEPS CAN BE SKIPPED IF YOU WISH NOT TO 
-USE THE DATABASE. SEE STEP 3.*
-
-To import the SQL schema:
-
-```
-[postgres] createdb moosic
-```
-
-This will create the database moosic. Then, to import the schema of this
-project:
-
-```
-$ psql -U postgres -d moosic "database.sql"
-```
-
-#### Step 2: Enviroment variables
+#### Step 1: Setup
 
 You first need to set these enviroment variables in order for this bot to
 work properly:
 
 - MOO_BOT_KEY : A discord bot application key.
-- DATABASE_URL: An url to the PostgreSQL database. It follows a structure similar
-to "postgresql://user:password@host:port/database"
 - SP_CLIENT   : Client application key from Spotify.
 - SP_SECRET   : Secret application key from Spotify.
 
@@ -62,7 +41,7 @@ python3 -m pip install -r requirements.txt
 
 And it should be enough.
 
-#### Step 3: Executing
+#### Step 2: Executing
 
 Executing is the easiest step.
 
@@ -70,19 +49,6 @@ Executing is the easiest step.
 python moosic.py
 ```
 
-In case you had trouble setting up the database, you might want to execute, 
-instead:
-
-```
-python moosic.py --no-database
-```
-
-**However, the language of the bot will only be available in portuguese.** Also,
-MOO_BOT_KEY, SP_CLIENT and SP_SECRET must be existing environment variables. See
-Step 2.
-
 ### License
 
 moosic-bot is licensed under the [MIT License](https://github.com/murilobnt/moosic-bot/blob/master/LICENSE).
-
-

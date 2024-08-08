@@ -30,8 +30,10 @@ class MusicPlayer(commands.Cog):
         if not moosic_instance.is_playing():
             await moosic_instance.play_current_song()
 
-    @commands.command()
+    @commands.command(aliases=['pular'], description="ldesc_skip")
     async def skip(self, ctx, how_many : int = None):
+        """Pula um determinado número de músicas na fila"""
+
         if how_many:
             if how_many <= 0:
                 return # error
@@ -41,50 +43,66 @@ class MusicPlayer(commands.Cog):
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         moosic_instance.skip(how_many)
 
-    @commands.command()
+    @commands.command(aliases=['time', 'to', 'para', 'em', 'tempo'], description="ldesc_seek")
     async def seek(self, ctx, *, timestamp):
+        """Vai para um determinado tempo da música"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         moosic_instance.seek(timestamp)
 
-    @commands.command()
+    @commands.command(aliases=['pausar'], description="ldesc_pause")
     async def pause(self, ctx):
+        """Pausa a música que está tocando"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         moosic_instance.pause()
 
-    @commands.command()
+    @commands.command(aliases=['resumir', 'retomar'], description="ldesc_resume")
     async def resume(self, ctx):
+        """Resume a música que estava tocando"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         moosic_instance.resume()
 
-    @commands.command()
+    @commands.command(aliases=['aleatorio, random'], description="ldesc_shuffle")
     async def shuffle(self, ctx):
+        """Reordena a fila de reprodução de forma aleatória"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         moosic_instance.shuffle()
 
-    @commands.command()
+    @commands.command(aliases=['remover', 'rm'], description="ldesc_remove")
     async def remove(self, ctx, index : int):
+        """Remove alguma música da fila"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         moosic_instance.remove(index)
 
-    @commands.command()
+    @commands.command(aliases=['now_playing', 'tocando_agora', 'ta'], description="ldesc_np")
     async def np(self, ctx):
+        """Disponibiliza informações da música que está tocando"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         await moosic_instance.np(ctx.author.mention, ctx.message.channel)
 
-    # Also harder
-    @commands.command()
+    @commands.command(aliases=['q', 'fila', 'f', 'cola', 'c'], description="ldesc_queue")
     async def queue(self, ctx):
+        """Mostra informações da lista de músicas"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         await moosic_instance.queue(ctx.message.channel, ctx.author)
 
-    # Needs text feedback to user
-    @commands.command()
+    @commands.command(aliases=['repetir'], description="ldesc_loop")
     async def loop(self, ctx):
+        """Altera o modo de loop do bot"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         await moosic_instance.loop(ctx.message.channel)
 
-    @commands.command(aliases=["dc"])
+    @commands.command(aliases=['dc', 'quit'], description="ldesc_disconnect")
     async def disconnect(self, ctx):
+        """Desconecta o bot da chamada e encerra tudo"""
+
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         await moosic_instance.do_disconnect(ctx.message.channel)
 

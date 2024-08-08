@@ -98,7 +98,7 @@ Utilize este comando uma vez para colocá-lo no modo de repetição da fila, mai
         "ldesc_pause" : """Este comando pausa a música que está tocando. Para retomar a música, utilize o comando resume""",
         "ldesc_play" : """Este comando é responsável por conectar o bot a um canal de voz (caso ele não esteja) e por colocar algum item na fila.
 Como argumento deste comando, você deve infomar:
-A url de um vídeo, playlist ou live, do YouTube; 
+A url de um vídeo, playlist ou live, do YouTube ou Spotify; 
 Um texto de busca que vai adicionar o primeiro vídeo que encontrar com a busca, no YouTube;
 Ou o índice de uma música na fila, para tocar imediatamente.""",
         "ldesc_queue" : """Este comando mostra as informações da lista de músicas do servidor.
@@ -214,7 +214,7 @@ Use this command once to set the bot in loop queue mode, again for loop track mo
         "ldesc_pause" : """This command pauses the song that is playing. To resume the song, use the resume command.""",
         "ldesc_play" : """This command is responsible for connecting the bot to a voice channel (if it isn't connected) and for inserting an item to the queue.
 As argument of this command, you must provide:
-The url of a YouTube video, playlist or live;
+The url of a YouTube, or Spotify, video, playlist or live;
 A YouTube search query that will insert the first video of the result.
 Or the index of a song in the queue, to play right now.""",
         "ldesc_queue" : """This command displays information about the song queue of the server.
@@ -331,7 +331,7 @@ Utilice este comando una vez para ponerlo en modo de repetición en cola, una ve
         "ldesc_pause" : """Este comando detiene la canción que se está reproduciendo actualmente. Para reanudar la música, use el comando resume""",
         "ldesc_play" : """Este comando se encarga de conectar el bot a un canal de voz (si no está conectado) y de poner algún elemento en la cola.
 Como argumento de este comando, debe ingresar:
-La URL de un video, lista de reproducción o en vivo de YouTube;
+La URL de un video, lista de reproducción o en vivo de YouTube o Spotify;
 Un texto de búsqueda que agregará el primer video que encuentre con la búsqueda, en YouTube;
 O el índice de una canción en la cola, para reproducir de inmediato.""",
         "ldesc_queue" : """Este comando mostra as informações da lista de músicas do servidor.
