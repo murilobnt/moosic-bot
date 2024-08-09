@@ -79,7 +79,12 @@ class MusicPlayer(commands.Cog):
         moosic_instance = self.server_instances.get_instance(ctx.guild.id)
         MusicVerifications.verify_voice(ctx)
 
+        playing = moosic_instance.is_playing()
+
         moosic_instance.shuffle()
+
+        if not playing:
+            await moosic_instance.play_current_song()
 
     @commands.command(aliases=['remover', 'rm'], description="ldesc_remove")
     async def remove(self, ctx, index : int):

@@ -74,7 +74,9 @@ class MoosicInstance:
 
     def shuffle(self):
         self.music_control.shuffle()
-        self.discord_stuff.stop_current_audio()
+        if self.music_control.playing:
+            self.music_control.jump = True
+            self.discord_stuff.stop_current_audio()
 
     def remove(self, index):
         m_index = index - 1
