@@ -82,11 +82,11 @@ class DiscordStuff:
 
     async def send_now_playing_message(self, mention, text_channel, song, position, elapsed):
         duration = song.get('duration')
-            
         formatted_elapsed = Helpers.format_time(elapsed)
-        formatted_duration = Helpers.format_time(duration)
 
-        if not song.get("duration_str") == "0":
+        if duration and duration != 0:
+            formatted_duration = Helpers.format_time(duration)
+
             completion_bar = int((elapsed/duration) * 20)
             complement_bar = 20 - completion_bar
 
