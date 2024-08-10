@@ -136,7 +136,7 @@ class MusicControl:
 
     def shuffle(self):
         self.music_list = random.sample(self.music_list, k=len(self.music_list))
-        self.song_index = 0
+        self.current_index = 0
 
     def change_loop(self):
         if self.loop_state == LoopState.NOT_ON_LOOP:
