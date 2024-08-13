@@ -18,6 +18,8 @@ class MusicPlayer(commands.Cog):
         """Toca uma música, ou um índice de música na fila, e conecta o bot a um canal de voz"""
 
         MusicVerifications.verify_user_voice(ctx)
+        MusicVerifications.verify_perms(ctx)
+
         moosic_instance = self.server_instances.get_instance_or_create(ctx.guild.id, ctx.message.channel)
 
         if Helpers.is_int(input):
