@@ -37,7 +37,7 @@ class MoosicGrabber:
     @staticmethod
     def request_yt(video_id):
         url = "https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"
-        payload = {"videoId": video_id, "context" : {"client" : { "clientName" : "ANDROID_TESTSUITE", "clientVersion" : "1.9", "androidSdkVersion" : 30 }}}
+        payload = {"videoId": video_id, "context" : {"client" : { "clientName" : "IOS", "clientVersion" : "19.29.1" }}}
         request = requests.post(url, json=payload)
         if request.status_code != 200:
             raise MoosicError("er_himalformed")
