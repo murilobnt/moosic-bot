@@ -20,14 +20,16 @@ class LoopControl:
         await callback()
 
     async def become_inactive(self, timeout, callback):
-        self.inactive_task = asyncio.ensure_future(self.inactive(timeout, callback))
+        self.inactive_task = asyncio.create_task(self.inactive(timeout, callback))
 
     async def become_alone(self, timeout, callback):
-        self.alone_task = asyncio.ensure_future(self.alone(timeout, callback))
+        self.alone_task = asyncio.create_task(self.alone(timeout, callback))
 
     def cancel_tasks(self):
         Helpers.cancel_task(self.inactive_task)
         Helpers.cancel_task(self.alone_task)
+        self.inactive_task = None
+        self.alone_task = None
 
     def cancel_inactive(self):
         Helpers.cancel_task(self.inactive_task)

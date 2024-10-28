@@ -170,6 +170,7 @@ class DiscordStuff:
     async def delete_now_playing_message(self):
         if self.now_playing_message:
             asyncio.create_task(self.now_playing_message.delete())
+            self.now_playing_message = None
 
     async def play_song(self, song, loop_handler):
         if not self.vc_conn.is_connected():

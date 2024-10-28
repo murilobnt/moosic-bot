@@ -149,7 +149,7 @@ class MoosicInstance:
         await self.disconnect()
 
     async def disconnect(self):
-        self.loop_control.cancel_tasks()
         await self.discord_stuff.delete_now_playing_message()
         await self.discord_stuff.disconnect()
         self.disconnector.disconnect()
+        self.loop_control.cancel_tasks()

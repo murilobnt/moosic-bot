@@ -7,6 +7,8 @@ from src.core.server_instances import ServerInstances
 from src.utils.helpers import Helpers
 from src.utils.music_verifications import MusicVerifications
 
+from src.utils.moosic_error import MoosicError
+
 class MusicPlayer(commands.Cog):
     """desc_mp"""
     def __init__(self, bot):
@@ -135,9 +137,12 @@ class MusicPlayer(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        moosic_instance = self.server_instances.get_instance(member.guild.id)
+        try:
+            moosic_instance = self.server_instances.get_instance(member.guild.id)
+        except MoosicError:
+            return
 
-        if not moosic_instance or member == self.bot.user or (before and after and before.channel == after.channel):
+        if member == self.bot.user or (before and after and before.channel == after.channel):
             return
 
         if member == self.bot.user and not after.channel:
