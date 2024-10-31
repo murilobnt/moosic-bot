@@ -7,6 +7,8 @@ import re
 import time
 import random
 
+from urllib.parse import urlparse
+
 from src.utils.helpers import Helpers
 from src.utils.moosic_finder import MoosicFinder
 from src.utils.moosic_grabber import MoosicGrabber
