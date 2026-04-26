@@ -14,7 +14,7 @@ from src.utils.helpers import Helpers
 from src.utils.enums import MetaType, LoopState
 from src.utils.translator import Translator
 
-from youtubesearchpython import VideosSearch
+from youtube_search import YoutubeSearch
 
 class Filter:
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
@@ -181,7 +181,7 @@ class DiscordStuff:
         if song['type'] == MetaType.YOUTUBE:
             video = MoosicGrabber.request_yt(song.get('id'))
         elif song['type'] == MetaType.SPOTIFY:
-            lookup = (VideosSearch(song['search_query'], limit=1).result()).get('result')[0]
+            lookup = YoutubeSearch(song['search_query'], max_results=1)[0]
             video = MoosicGrabber.request_yt(lookup.get('id'))
 
         self.current_audio_url = video.get_audio_url()

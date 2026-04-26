@@ -139,7 +139,7 @@ class Helpers:
         songs_str = ""
         i = 1
         for entry in entries:
-            songs_str = songs_str + "[" + str(i) + f"] : {entry.get('title')} <{entry.get('channel').get('name')}, {entry.get('duration')}>"
+            songs_str = songs_str + "[" + str(i) + f"] : {entry.get('title')} <{entry.get('channel')}, {entry.get('duration')}>"
             if not i == len(entries):
                 songs_str = songs_str + "\n"
             i += 1

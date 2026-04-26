@@ -4,7 +4,9 @@ import validators
 import re
 
 from urllib.parse import urlparse
-from youtubesearchpython import Playlist, VideosSearch
+#from youtubesearchpython import Playlist, VideosSearch
+from youtube_search import YoutubeSearch
+from pytubefix import Playlist
 
 from src.utils.enums import MoosicSearchType, MetaType
 from src.utils.moosic_error import MoosicError
@@ -22,7 +24,7 @@ class MoosicFinder:
         if validators.url(input):
             # url handling
             parsed_url = urlparse(input)
-            if re.match("(m\.|www\.)?(youtu\.be|youtube\.com)", parsed_url.netloc):
+            if re.match(r"(m\.|www\.)?(youtu\.be|youtube\.com)", parsed_url.netloc):
                 path = parsed_url.path.split("/")[1] 
                 match path:
                     case "playlist":
@@ -50,9 +52,13 @@ class MoosicFinder:
     @staticmethod
     def fetch_yt_playlist(url):
         pl = Playlist(url)
-        while pl.hasMoreVideos:
-            pl.getNextVideos()
-        return pl.videos
+        playlist_videos = pl.initial_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['playlistVideoListRenderer']['contents']
+        videos = []
+
+        for video in playlist_videos:
+            aux = {'title': video['playlistVideoRenderer']['title']['runs'][0]['text'], 'id': video['playlistVideoRenderer']['videoId'], 'duration': str(video['playlistVideoRenderer']['lengthSeconds'])}
+            videos.append(aux)
+        return videos
 
     @staticmethod
     def gen_spotify_playlist(playlist_items):
@@ -83,7 +89,7 @@ class MoosicFinder:
                      'title'    : item.get('title'),
                      'url'      : f"https://youtube.com/watch?v={item.get('id')}",
                      'id'       : item.get('id'),
-                     'duration' : Helpers.time_to_seconds(Helpers.str_to_time(item.get('duration')))
+                     'duration' : int(item.get('duration'))
                    }
             meta_list.append(meta)
         return meta_list
@@ -140,4 +146,4 @@ class MoosicFinder:
 
     @staticmethod
     def search_youtube(query):
-        return VideosSearch(query, limit=10).result().get("result")
+        return YoutubeSearch(query, max_results=10).to_dict()
