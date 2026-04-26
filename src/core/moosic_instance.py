@@ -1,5 +1,7 @@
 import asyncio
 
+from pytubefix.exceptions import AgeRestrictedError
+
 from src.operations.music_control import MusicControl
 from src.operations.loop_control import LoopControl
 from src.operations.discord_stuff import DiscordStuff
@@ -127,10 +129,13 @@ class MoosicInstance:
     async def play_current_song(self):
         self.music_control.playing = True
         self.loop_control.cancel_inactive()
-        await self.discord_stuff.play_song(self.music_control.get_current_song(), self.loop_handler)
-        self.music_control.play()
-        await self.discord_stuff.delete_now_playing_message()
-        await self.discord_stuff.send_music_change_message(self.music_control.get_current_song(), self.music_control.current_index)
+        try:
+            await self.discord_stuff.play_song(self.music_control.get_current_song(), self.loop_handler)
+            self.music_control.play()
+            await self.discord_stuff.delete_now_playing_message()
+            await self.discord_stuff.send_music_change_message(self.music_control.get_current_song(), self.music_control.current_index)
+        except AgeRestrictedError:
+            await self.next_loop()
 
     async def seek_current_song(self):
         await self.discord_stuff.seek_current_song(self.music_control.seeker.seek_options, self.loop_handler)
