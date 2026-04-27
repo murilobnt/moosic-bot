@@ -4,7 +4,6 @@ import validators
 import re
 
 from urllib.parse import urlparse
-#from youtubesearchpython import Playlist, VideosSearch
 from youtube_search import YoutubeSearch
 from pytubefix import Playlist
 
@@ -37,7 +36,7 @@ class MoosicFinder:
                 path = urlparse(input).path.split("/")[1] 
                 match path:
                     case "playlist":
-                        return MoosicSearchType.SPOTIFY_ALBUM
+                        return MoosicSearchType.SPOTIFY_PLAYLIST
                     case "album":
                         return MoosicSearchType.SPOTIFY_ALBUM
                     case "track":
@@ -61,23 +60,28 @@ class MoosicFinder:
         return videos
 
     @staticmethod
+    def gen_spotify_album(album_items):
+        meta_list = []
+        for item in album_items:
+            meta = { 'type'            : MetaType.SPOTIFY,
+                     'title'           : item['name'],
+                     'url'             : item['external_urls']['spotify'],
+                     'duration'        : int(item['duration_ms'] / 1000),
+                     'search_query'    : f"{item['artists'][0]['name']} {item['name']}"
+                    } 
+            meta_list.append(meta)
+        return meta_list
+
+    @staticmethod
     def gen_spotify_playlist(playlist_items):
         meta_list = []
         for item in playlist_items:
-            if item.get('track'):
-                meta = { 'type'            : MetaType.SPOTIFY,
-                         'title'           : item['track']['name'],
-                         'url'             : item['track']['external_urls']['spotify'],
-                         'duration'        : int(item['track']['duration_ms'] / 1000),
-                         'search_query'    : f"{item['track']['artists'][0]['name']} {item['track']['name']} views"
-                       }
-            else:
-                meta = { 'type'            : MetaType.SPOTIFY,
-                         'title'           : item['name'],
-                         'url'             : item['external_urls']['spotify'],
-                         'duration'        : int(item['duration_ms'] / 1000),
-                         'search_query'    : f"{item['artists'][0]['name']} {item['name']} views"
-                        } 
+            meta = { 'type'            : MetaType.SPOTIFY,
+                     'title'           : item['title'],
+                     'url'             : f"https://open.spotify.com/track/{item['uri'].split(":")[-1]}",
+                     'duration'        : int(item['duration'] / 1000),
+                     'search_query'    : f"{item['subtitle']} {item['title']}"
+                    } 
             meta_list.append(meta)
         return meta_list
 
@@ -146,4 +150,6 @@ class MoosicFinder:
 
     @staticmethod
     def search_youtube(query):
-        return YoutubeSearch(query, max_results=10).to_dict()
+        return YoutubeSearch(query, max_results=10).videos
+        #sorted_lookup = sorted(lookup, key=lambda x: int(x['views'].split(" ")[0].replace(".", "")), reverse=True)
+        #return sorted_lookup

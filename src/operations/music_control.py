@@ -1,4 +1,3 @@
-import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
 import datetime
@@ -12,6 +11,7 @@ from urllib.parse import urlparse
 from src.utils.helpers import Helpers
 from src.utils.moosic_finder import MoosicFinder
 from src.utils.moosic_grabber import MoosicGrabber
+from src.utils.moosic_spotify import MoosicSpotify
 from src.utils.translator import Translator
 from src.utils.moosic_error import MoosicError
 
@@ -24,7 +24,7 @@ class Seeker:
         self.gap = 0
 
     def seek(self, timestamp):
-        if not re.match('^((?:\d{1,2}:)?(?:\d{1,2}:)?(?:\d{1,2})|\d+)$', timestamp):
+        if not re.match(r'^((?:\d{1,2}:)?(?:\d{1,2}:)?(?:\d{1,2})|\d+)$', timestamp):
             raise MoosicError("er_seekarg")
 
         self.on_seek = True
@@ -33,7 +33,7 @@ class Seeker:
 
 class MusicControl:
     def __init__(self):
-        self.sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=os.environ["SP_CLIENT"], client_secret=os.environ["SP_SECRET"]))
+        self.moosic_spotify = MoosicSpotify()
         self.seeker = Seeker()
 
         self.music_list = []
@@ -79,17 +79,21 @@ class MusicControl:
 
     def add_spotify_song(self, spotify_url):
         track_URI = spotify_url.split("/")[-1].split("?")[0]
-        track = self.sp.track(track_URI)
+        track = self.moosic_spotify.get_track(track_URI)
         song = MoosicFinder.gen_spotify_song(track)
         self.music_list.append(song)
         return song
 
     def add_spotify_album(self, spotify_url):
+        album_URI = spotify_url.split("/")[-1].split("?")[0]
+        tracks_uri = self.moosic_spotify.get_album_tracks(album_URI)
+        al = MoosicFinder.gen_spotify_album(tracks_uri)
+        self.music_list.extend(al)
+        return len(al)
+
+    def add_spotify_playlist(self, spotify_url):
         playlist_URI = spotify_url.split("/")[-1].split("?")[0]
-        try:
-            tracks_uri = self.sp.playlist_tracks(playlist_URI)["items"]
-        except:
-            tracks_uri = self.sp.album_tracks(playlist_URI)["items"]
+        tracks_uri = self.moosic_spotify.get_playlist_tracks(playlist_URI)
         pl = MoosicFinder.gen_spotify_playlist(tracks_uri)
         self.music_list.extend(pl)
         return len(pl)

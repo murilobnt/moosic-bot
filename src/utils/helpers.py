@@ -24,7 +24,7 @@ class Helpers:
 
     @staticmethod
     def str_to_time(time_str):
-        time_match = re.search('^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$', time_str)
+        time_match = re.search(r'^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$', time_str)
         if time_match.group(1):
             FORMAT = "%H:%M:%S"
         elif time_match.group(2):
@@ -44,7 +44,7 @@ class Helpers:
 
     @staticmethod
     def get_youtube_url_id(youtube_url):
-        id_match = re.search('(?:v=|\/)([0-9A-Za-z_-]{11}).*', youtube_url)
+        id_match = re.search(r'(?:v=|\/)([0-9A-Za-z_-]{11}).*', youtube_url)
         return id_match.group(1)
 
     @staticmethod

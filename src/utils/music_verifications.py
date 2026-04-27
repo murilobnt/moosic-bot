@@ -45,5 +45,5 @@ class MusicVerifications:
 
     @staticmethod
     def verify_timestamp(timestamp):
-        if not re.match('^((?:\d{1,2}:)?(?:\d{1,2}:)?(?:\d{1,2})|\d+)$', timestamp):
+        if not re.match(r'^((?:\d{1,2}:)?(?:\d{1,2}:)?(?:\d{1,2})|\d+)$', timestamp):
             raise MoosicError("er_seekarg")

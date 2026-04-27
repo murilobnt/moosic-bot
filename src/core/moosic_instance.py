@@ -37,6 +37,8 @@ class MoosicInstance:
                 pl_len = self.music_control.add_youtube_playlist(_input)
             case MoosicSearchType.SPOTIFY_SONG:
                 song = self.music_control.add_spotify_song(_input)
+            case MoosicSearchType.SPOTIFY_PLAYLIST:
+                pl_len = self.music_control.add_spotify_playlist(_input)
             case MoosicSearchType.SPOTIFY_ALBUM:
                 pl_len = self.music_control.add_spotify_album(_input)
             case MoosicSearchType.SEARCH_STRING:

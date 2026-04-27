@@ -5,6 +5,7 @@ import discord
 from discord import FFmpegPCMAudio
 
 import time
+from difflib import SequenceMatcher
 
 from src.utils.moosic_finder import MoosicFinder, InteractiveText
 from src.utils.moosic_grabber import MoosicGrabber
@@ -181,8 +182,9 @@ class DiscordStuff:
         if song['type'] == MetaType.YOUTUBE:
             video = MoosicGrabber.request_yt(song.get('id'))
         elif song['type'] == MetaType.SPOTIFY:
-            lookup = YoutubeSearch(song['search_query'], max_results=1)[0]
-            video = MoosicGrabber.request_yt(lookup.get('id'))
+            lookup = YoutubeSearch(song['search_query'], max_results=10).videos
+            sorted_lookup = sorted(lookup, key=lambda x: SequenceMatcher(None, song['title'], x['title']).ratio(), reverse=True)
+            video = MoosicGrabber.request_yt(sorted_lookup[0].get('id'))
 
         self.current_audio_url = video.get_audio_url()
         self.current_video_thumbnail = video.get_thumbnail()

@@ -15,8 +15,9 @@ class MoosicSearchType(Enum):
     YOUTUBE_SHORTS = 3
     YOUTUBE_PLAYLIST = 4
     SPOTIFY_SONG = 5
-    SPOTIFY_ALBUM = 6
-    UNKNOWN = 7
+    SPOTIFY_PLAYLIST = 6
+    SPOTIFY_ALBUM = 7
+    UNKNOWN = 8
 
 class LoopIntent(Enum):
     NORMAL = 1
