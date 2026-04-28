@@ -4,7 +4,7 @@ import time
 import datetime
 import re
 
-from hyperfuzz import fuzz
+from thefuzz import fuzz
 
 from src.utils.moosic_error import MoosicError
 from src.utils.enums import LoopState, MoosicSearchType
@@ -14,7 +14,6 @@ class Helpers:
 
     @staticmethod
     def title_similarity(_from, _to):
-        print(f"DEBUG: Comparing {_from} to {_to}")
         trans_f = re.sub(r'[^a-zA-Z0-9 ]', '', _from)
         trans_t = re.sub(r'[^a-zA-Z0-9 ]', '', _to)
         tokens_f = trans_f.split()
@@ -23,7 +22,7 @@ class Helpers:
         diff = set(tokens_f) - set(tokens_t)
         weight = 1 - len(diff) / len(tokens_f)
 
-        return fuzz.partial_ratio(_from, _to) * weight
+        return (fuzz.partial_ratio(_from, _to)/100) * weight
 
     @staticmethod
     def time_to_seconds(time):
