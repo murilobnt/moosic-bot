@@ -126,7 +126,7 @@ class MoosicFinder:
                  'title'           : song_info['name'],
                  'url'             : song_info['external_urls']['spotify'],
                  'duration'        : int(song_info['duration_ms'] / 1000),
-                 'search_query'    : f"{song_info['artists'][0]['name']} {song_info['name']} views"
+                 'search_query'    : f"{song_info['artists'][0]['name']} {song_info['name']}"
                }
         return meta
 
