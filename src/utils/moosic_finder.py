@@ -55,8 +55,11 @@ class MoosicFinder:
         videos = []
 
         for video in playlist_videos:
-            aux = {'title': video['playlistVideoRenderer']['title']['runs'][0]['text'], 'id': video['playlistVideoRenderer']['videoId'], 'duration': str(video['playlistVideoRenderer']['lengthSeconds'])}
-            videos.append(aux)
+            try:
+                aux = {'title': video['playlistVideoRenderer']['title']['runs'][0]['text'], 'id': video['playlistVideoRenderer']['videoId'], 'duration': str(video['playlistVideoRenderer']['lengthSeconds'])}
+                videos.append(aux)
+            except KeyError:
+                continue
         return videos
 
     @staticmethod
