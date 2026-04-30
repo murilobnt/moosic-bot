@@ -2,6 +2,7 @@ import discord
 import datetime
 import validators
 import re
+import requests
 
 from urllib.parse import urlparse
 from youtube_search import YoutubeSearch
@@ -49,17 +50,84 @@ class MoosicFinder:
             return MoosicSearchType.SEARCH_STRING
 
     @staticmethod
+    def extract_video_information(video_entry):
+        return {'title': video_entry['playlistVideoRenderer']['title']['runs'][0]['text'], 'id': video_entry['playlistVideoRenderer']['videoId'], 'duration': str(video_entry['playlistVideoRenderer']['lengthSeconds'])}
+
+    @staticmethod
+    def get_remaining_videos(token):
+        continue_token = token
+        added_videos = []
+
+        retries = 3
+        timeout = 10
+
+        yt_api_url = 'https://www.youtube.com/youtubei/v1/browse'
+        headers = { 'Content-Type' : 'application/json' }
+        request_data = {
+            'context': {
+                'client': {
+                    'clientName': 'WEB',
+                    'clientVersion': '2.20240313.05.00'
+                }
+            }
+        }
+
+        # FOR MY FUTURE SELF: THIS IS A DO-WHILE
+        while True:
+            request_data['continuation'] = continue_token
+
+            attempts = 1
+
+            while True:
+                response = requests.post(yt_api_url, headers=headers, json=request_data, timeout=10)
+                got_data = response.json()
+                continuation_videos = got_data['onResponseReceivedActions'][0]['appendContinuationItemsAction']['continuationItems']
+
+                if 'lockupViewModel' in continuation_videos[-1]:
+                    if attempts == 3:
+                        raise MoosicError("er_url")
+                    attempts += 1
+                else:
+                    break
+
+            for video in continuation_videos:
+                try:
+                    added_videos.append(MoosicFinder.extract_video_information(video))
+                except KeyError:
+                    continue
+
+            if 'continuationItemRenderer' in continuation_videos[-1]:
+                continue_token = continuation_videos[-1]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token']
+            else:
+                break
+
+        return added_videos
+
+    @staticmethod
     def fetch_yt_playlist(url):
         pl = Playlist(url)
-        playlist_videos = pl.initial_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['playlistVideoListRenderer']['contents']
+
+        attempts = 1
+        while True:
+            try:
+                playlist_videos = pl.initial_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['playlistVideoListRenderer']['contents']
+                break
+            except KeyError:
+                if attempts == 3:
+                    raise MoosicError("er_url")
+                attempts += 1
         videos = []
 
         for video in playlist_videos:
             try:
-                aux = {'title': video['playlistVideoRenderer']['title']['runs'][0]['text'], 'id': video['playlistVideoRenderer']['videoId'], 'duration': str(video['playlistVideoRenderer']['lengthSeconds'])}
-                videos.append(aux)
+                videos.append(MoosicFinder.extract_video_information(video))
             except KeyError:
                 continue
+
+        if "continuationItemRenderer" in playlist_videos[-1]:
+            continue_token = playlist_videos[-1]['continuationItemRenderer']['continuationEndpoint']['commandExecutorCommand']['commands'][1]['continuationCommand']['token']
+            videos.extend(MoosicFinder.get_remaining_videos(continue_token))
+
         return videos
 
     @staticmethod
