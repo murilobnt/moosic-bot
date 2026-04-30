@@ -84,7 +84,7 @@ class MoosicFinder:
                 continuation_videos = got_data['onResponseReceivedActions'][0]['appendContinuationItemsAction']['continuationItems']
 
                 if 'lockupViewModel' in continuation_videos[-1]:
-                    if attempts == 3:
+                    if attempts == 4:
                         raise MoosicError("er_url")
                     attempts += 1
                 else:
@@ -113,7 +113,7 @@ class MoosicFinder:
                 playlist_videos = pl.initial_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['playlistVideoListRenderer']['contents']
                 break
             except KeyError:
-                if attempts == 3:
+                if attempts == 4:
                     raise MoosicError("er_url")
                 attempts += 1
         videos = []
